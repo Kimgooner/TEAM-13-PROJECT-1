@@ -6,7 +6,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @Entity
 @Getter
@@ -20,9 +19,10 @@ public class Menu {
     private String image;
     private int price;
 
-    public void modify(String name, String image, int price){
+    public Menu(String name, String image, int price) {
         this.name = name;
         this.image = image;
         this.price = price;
     }
+
 }
