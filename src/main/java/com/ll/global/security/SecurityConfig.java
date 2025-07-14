@@ -18,7 +18,6 @@ public class SecurityConfig {
                         .requestMatchers("/**").permitAll()
                         .anyRequest().permitAll()
                 )
-                .csrf(AbstractHttpConfigurer::disable)
                 .headers(
                         headers -> headers
                                 .frameOptions(
