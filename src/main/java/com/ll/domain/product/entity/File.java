@@ -1,14 +1,16 @@
-package com.ll.domain.productImage.entity;
+package com.ll.domain.product.entity;
 
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
-public class ProductImage extends BaseEntity {
-    private int fileId;
-    private int productId;
+public class File extends BaseEntity {
+    String type;
+    String name;
 }

@@ -1,16 +1,15 @@
-package com.ll.domain.file.entity;
+package com.ll.domain.order.entity;
 
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
-public class File extends BaseEntity {
-    String type;
-    String name;
+public class WishList extends BaseEntity {
+    private int product_id;
+    private String email;
+    private int product_id2;
 }

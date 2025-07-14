@@ -1,4 +1,4 @@
-package com.ll.domain.user.entity;
+package com.ll.domain.member.entity;
 
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class User extends BaseEntity {
+public class Member extends BaseEntity {
     private String email;
     private String user_id;
     private String password;

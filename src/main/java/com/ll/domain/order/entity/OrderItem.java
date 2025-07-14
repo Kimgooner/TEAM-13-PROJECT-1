@@ -1,4 +1,4 @@
-package com.ll.domain.wishList.entity;
+package com.ll.domain.order.entity;
 
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class WishList extends BaseEntity {
+public class OrderItem extends BaseEntity {
+    private int order_count;
+    private int product_price;
+    private int total_price;
+    private int order_id;
     private int product_id;
-    private String email;
-    private int product_id2;
 }
