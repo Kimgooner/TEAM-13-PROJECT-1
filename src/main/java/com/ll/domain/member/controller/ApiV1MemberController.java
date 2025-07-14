@@ -17,7 +17,7 @@ public class ApiV1MemberController {
     private final MemberService memberService;
 
     @PostMapping
-    public ResponseEntity<MemberDto.Response> join(@RequestBody MemberDto.JoinRequest dto){
+    public ResponseEntity<MemberDto.Response> join(@RequestBody MemberDto.JoinRequest dto){ // 회원 가입
         Member member = memberService.addUserMember(
                 dto.getEmail(),
                 dto.getUser_id(),
@@ -31,7 +31,7 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody MemberDto.LoginRequest dto){
+    public ResponseEntity<?> login(@RequestBody MemberDto.LoginRequest dto){ // 로그인
         Optional<Member> memberOptional = memberService.login(dto.getEmail(), dto.getPassword());
 
         if(memberOptional.isEmpty()){
@@ -42,7 +42,7 @@ public class ApiV1MemberController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MemberDto.Response> findById(@PathVariable Integer id){
+    public ResponseEntity<MemberDto.Response> findById(@PathVariable Integer id){ // id로 멤버 찾기
         return memberService.findById(id)
                 .map(member -> ResponseEntity.ok(new MemberDto.Response(member)))
                 .orElse(ResponseEntity.notFound().build());
