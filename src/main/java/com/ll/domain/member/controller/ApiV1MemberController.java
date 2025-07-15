@@ -3,24 +3,23 @@ package com.ll.domain.member.controller;
 import com.ll.domain.member.dto.MemberDto;
 import com.ll.domain.member.entity.Member;
 import com.ll.domain.member.service.MemberService;
+import com.ll.global.exception.ServiceException;
+import com.ll.global.rq.Rq;
 import com.ll.global.rsData.RsData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import com.ll.global.exception.ServiceException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/members")
 public class ApiV1MemberController {
     private final MemberService memberService;
+    private final Rq rq;
 
     record SignUpRequest(
             @Email
@@ -97,19 +96,26 @@ public class ApiV1MemberController {
                 loginRequest.password()
         );
 
+        String accessToken = memberService.genAccessToken(member);
+
+        rq.setCookie("apiKey", member.getApiKey());
+        rq.setCookie("accessToken", accessToken);
+
         return new RsData<>(
                 "200-1",
                 "%s님 환영합니다.".formatted(member.getName()),
                 new LoginResponse(
                         new MemberDto(member),
-                        "api-key",
-                        "token"
+                        member.getApiKey(),
+                        accessToken
                 )
         );
     }
 
     @PostMapping("/logout")
     public RsData<Void> logout(){
+        rq.deleteCookie("apiKey");
+
         return new RsData<>(
                 "200-1",
                 "로그아웃 되었습니다."
