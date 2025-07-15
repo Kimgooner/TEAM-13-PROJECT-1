@@ -36,7 +36,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             work(request, response, filterChain);
         } catch (ServiceException e) {
             RsData<Void> rsData = e.getRsData();
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=UTF-8");
             response.setStatus(rsData.statusCode());
             response.getWriter().write(
                     Ut.json.toString(rsData)
@@ -52,7 +52,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (List.of("/api/v1/members/login", "/api/v1/members/logout", "/api/v1/members/join").contains(request.getRequestURI())) {
+        if (List.of("/api/v1/members/login", "/api/v1/members/logout", "/api/v1/members/signup/user", "/api/v1/members/signup/admin").contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
