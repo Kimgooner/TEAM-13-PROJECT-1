@@ -22,10 +22,10 @@ public class ApiV1ProductController {
     @PostMapping(value = "/create", consumes = "multipart/form-data")
     public RsData<Product> createProduct(
             @ModelAttribute CreateProductRequestDto productDto,
-            @RequestParam("mainImage") MultipartFile mainImage,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images
+            @RequestParam("mainImage") MultipartFile mainImage
+
     ) {
-        Product product = productService.createProduct(productDto, mainImage, images);
+        Product product = productService.createProduct(productDto, mainImage);
         return new RsData<>("200-1", "상품이 등록되었습니다.", product);
     }
 }

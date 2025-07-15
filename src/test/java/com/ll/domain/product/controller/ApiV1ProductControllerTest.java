@@ -1,9 +1,6 @@
 package com.ll.domain.product.controller;
 
 import com.ll.domain.product.service.ProductService;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,21 +40,16 @@ public class ApiV1ProductControllerTest {
     private String dirName;
 
     @Test
-    @DisplayName("상품 등록 - form-data 방식")
+    @DisplayName("상품 등록 - MediaType.MULTIPART_FORM_DATA 방식")
     void 상품_등록() throws Exception {
 
         // 대표 이미지
         MockMultipartFile mainImage = new MockMultipartFile("mainImage", "mainImage.jpg", "image/jpeg", "main-image-data".getBytes(StandardCharsets.UTF_8));
-        // 이미지 파일 2개 생성
-        MockMultipartFile image1 = new MockMultipartFile("images", "image1.jpg", "image/jpeg", "image-data-1".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile image2 = new MockMultipartFile("images", "image2.jpg", "image/jpeg", "image-data-2".getBytes(StandardCharsets.UTF_8));
 
         // 요청 및 검증
         ResultActions resultActions = mvc.perform(
                 multipart("/api/v1/products/create")
                         .file(mainImage)
-                        .file(image1)
-                        .file(image2)
                         .param("productName", "커피 01")
                         .param("price", "4500")
                         .param("description", "커피 01 설명")
