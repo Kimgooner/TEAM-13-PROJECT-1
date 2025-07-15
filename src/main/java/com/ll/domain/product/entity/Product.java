@@ -32,14 +32,5 @@ public class Product extends BaseEntity {
 
     @Enumerated(EnumType.STRING) // enum 타입 사용, 문자열로 저장
     private ProductStatus status; // 상품 상태 (SALE - 판매 중, SOLD_OUT - 품절, STOPPED - 판매 중지)
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ProductImage> images = new ArrayList<>(); // 상품 이미지 목록
-
-    public void addImage(ProductImage image) {
-        image.setProduct(this);
-        images.add(image);
-    }
 }
 
