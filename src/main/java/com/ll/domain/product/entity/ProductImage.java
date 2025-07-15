@@ -18,8 +18,6 @@ public class ProductImage extends BaseEntity {
 
     private int imageOrder; // 이미지 순서
 
-    private boolean isMain; // 대표 이미지 여부
-
     @Setter
     @ManyToOne
     @JsonIgnore

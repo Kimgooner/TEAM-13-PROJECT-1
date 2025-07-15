@@ -62,8 +62,8 @@ public class ApiV1ProductControllerTest {
                         .param("price", "4500")
                         .param("description", "커피 01 설명")
                         .param("stock", "500")
-                        .param("status", "판매중")
-                        .param("category", "커피")
+                        .param("status", "SALE")
+                        .param("category", "COFFEE")
                         .contentType(MediaType.MULTIPART_FORM_DATA)
         ).andDo(print());
 
