@@ -2,6 +2,7 @@ package com.ll.global.globalExceptionHandler;
 
 import com.ll.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -13,8 +14,7 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -56,6 +56,17 @@ public class GlobalExceptionHandler {
                         "요청 본문이 올바르지 않습니다."
                 ),
                 BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<RsData<Void>> handleDuplicateEmail(DataIntegrityViolationException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "409-1",
+                        "이미 사용 중인 이메일입니다."
+                ),
+                CONFLICT
         );
     }
 }
