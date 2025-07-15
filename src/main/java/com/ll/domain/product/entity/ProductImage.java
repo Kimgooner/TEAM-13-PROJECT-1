@@ -1,13 +1,11 @@
 package com.ll.domain.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
@@ -20,9 +18,11 @@ public class ProductImage extends BaseEntity {
 
     private int imageOrder; // 이미지 순서
 
-    private boolean isDefault; // 대표 이미지 여부
+    private boolean isMain; // 대표 이미지 여부
 
+    @Setter
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "product_id")
     private Product product; // 연관된 상품
 }
