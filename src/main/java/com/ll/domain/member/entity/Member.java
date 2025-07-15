@@ -3,6 +3,8 @@ package com.ll.domain.member.entity;
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +26,7 @@ public class Member extends BaseEntity {
     private String password;
     private String name;
     private String address;
+    @Enumerated(EnumType.STRING)
     private Role role;
     @Column(unique = true)
     private String apiKey;
