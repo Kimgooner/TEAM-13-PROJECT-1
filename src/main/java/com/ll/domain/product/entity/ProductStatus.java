@@ -1,7 +1,7 @@
 package com.ll.domain.product.entity;
 
 public enum ProductStatus {
-    판매중,
-    품절,
-    판매중지
+    SALE,
+    SOLD_OUT, // 품절
+    STOPPED // 판매 중지
 }

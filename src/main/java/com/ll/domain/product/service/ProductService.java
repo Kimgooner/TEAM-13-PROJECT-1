@@ -32,37 +32,26 @@ public class ProductService {
 
     public Product createProduct(CreateProductRequestDto productDto, MultipartFile mainImage, List<MultipartFile> images) {
 
-        System.out.println(dirName);
-
+        String mainImageUrl = saveFile(mainImage);
 
         Product product = Product.builder()
                 .productName(productDto.getProductName())
                 .price(productDto.getPrice())
                 .description(productDto.getDescription())
+                .productImage(mainImageUrl)
                 .stock(productDto.getStock())
                 .status(ProductStatus.valueOf(productDto.getStatus()))
                 .category(ProductCategory.valueOf(productDto.getCategory()))
                 .build();
 
-        // 대표 이미지 저장
-        String mainImageUrl = saveFile(mainImage);
-        ProductImage mainProductImage = ProductImage.builder()
-                .imageUrl(mainImageUrl)
-                .imageOrder(0)
-                .isMain(true)
-                .product(product)
-                .build();
-        product.addImage(mainProductImage);
-
         // 추가 이미지 저장 (images가 null이 아닐 때만)
-        int order = 1;
+        int order = 0;
         if (images != null) {
             for (MultipartFile file : images) {
                 String imageUrl = saveFile(file);
                 ProductImage image = ProductImage.builder()
                         .imageUrl(imageUrl)
                         .imageOrder(order)
-                        .isMain(false)
                         .product(product)
                         .build();
                 product.addImage(image);
