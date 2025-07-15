@@ -33,6 +33,7 @@ public class Order extends BaseEntity {
     private int total_price;
 
     @Column(length = 300)
+
     private String address;
 
     private boolean delivery_status;
