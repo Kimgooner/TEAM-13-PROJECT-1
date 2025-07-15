@@ -2,6 +2,7 @@ package com.ll.domain.member.service;
 
 import com.ll.domain.member.entity.Member;
 import com.ll.domain.member.repository.MemberRepository;
+import com.ll.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,22 +17,35 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     public long count() {return memberRepository.count();}
-    public Member addUserMember(String email, String user_id, String password, String name, String address){
+    public Member addUserMember(String email, String password, String name, String address){
         String encodedPassword = passwordEncoder.encode(password);
         Member member = Member.builder()
                 .email(email)
-                .user_id(user_id)
                 .password(encodedPassword)
                 .name(name)
                 .address(address)
+                .role(Member.Role.USER)
                 .build();
 
         return memberRepository.save(member);
     }
 
-    public Optional<Member> login(String email, String password){
-        return memberRepository.findByEmail(email)
-                .filter(member -> passwordEncoder.matches(password, member.getPassword()));
+    public Member addAdminMember(String email, String password, String name, String address){
+        String encodedPassword = passwordEncoder.encode(password);
+        Member member = Member.builder()
+                .email(email)
+                .password(encodedPassword)
+                .name(name)
+                .address(address)
+                .role(Member.Role.ADMIN)
+                .build();
+
+        return memberRepository.save(member);
+    }
+
+    public void checkPassword(Member member, String password){
+        if(!passwordEncoder.matches(password, member.getPassword()))
+            throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
     }
 
     public Optional<Member> findById(Integer id){return memberRepository.findById(id);}
