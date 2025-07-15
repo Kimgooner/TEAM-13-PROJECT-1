@@ -6,6 +6,8 @@ import com.ll.domain.member.service.MemberService;
 import com.ll.global.exception.ServiceException;
 import com.ll.global.rq.Rq;
 import com.ll.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/members")
+@Tag(name = "ApiV1MemberController", description = "API 회원(사용자, 관리자) 컨트롤러")
 public class ApiV1MemberController {
     private final MemberService memberService;
     private final Rq rq;
@@ -38,6 +41,7 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/signup/user") // 사용자 회원가입
+    @Operation(summary = "사용자 회원 가입")
     public RsData<MemberDto> signUpUser(@Valid @RequestBody SignUpRequest signUpRequest){
         Member member = memberService.addUserMember(
                 signUpRequest.email(),
@@ -54,6 +58,7 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/signup/admin") // 관리자 회원 가입
+    @Operation(summary = "관리자 회원 가입")
     public RsData<MemberDto> signUpAdmin(@Valid @RequestBody SignUpRequest signUpRequest){
         Member member = memberService.addAdminMember(
                 signUpRequest.email(),
@@ -87,6 +92,7 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "로그인")
     public RsData<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest){ // 로그인
         Member member = memberService.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new ServiceException("401-1", "가입되지 않은 이메일입니다."));
@@ -113,6 +119,7 @@ public class ApiV1MemberController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "로그아웃")
     public RsData<Void> logout(){
         rq.deleteCookie("apiKey");
 
@@ -123,6 +130,7 @@ public class ApiV1MemberController {
     }
 
     @GetMapping("/admin") // 다건 조회
+    @Operation(summary = "회원 목록 다건 조회")
     public List<MemberDto> getMembers(){ // id로 멤버 찾기
         List<Member> members = memberService.findAll();
 
@@ -133,6 +141,7 @@ public class ApiV1MemberController {
     }
 
     @GetMapping("/admin/{id}") // 단건 조회 ( id 기반 )
+    @Operation(summary = "회원 목록 단건 조회(id 기반)")
     public MemberDto getMember(@PathVariable Integer id){ // id로 멤버 찾기
         Member member = memberService.findById(id).get();
 
