@@ -122,10 +122,48 @@ public class ApiV1MemberController {
     @Operation(summary = "로그아웃")
     public RsData<Void> logout(){
         rq.deleteCookie("apiKey");
+        rq.deleteCookie("accessToken");
 
         return new RsData<>(
                 "200-1",
                 "로그아웃 되었습니다."
+        );
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "현재 로그인된 사용자 확인")
+    public RsData<MemberDto> getMe(){
+        int currentActorId = rq.getActor().getId();
+        Member currentActor = memberService.findById(currentActorId).orElse(null);
+
+        if(currentActor == null) {
+            return new RsData<>(
+                    "402-1",
+                    "로그인이 필요합니다."
+            );
+        }
+
+        if(!currentActor.isAdmin()) {
+            MemberDto memberDto = new MemberDto(currentActor);
+            return new RsData<>(
+                    "202-1",
+                    "현재 로그인된 사용자 정보입니다.",
+                    memberDto
+            );
+        }
+
+        if(currentActor.isAdmin()) {
+            MemberDto memberDto = new MemberDto(currentActor);
+            return new RsData<>(
+                    "202-2",
+                    "현재 로그인된 관리자 정보입니다.",
+                    memberDto
+            );
+        }
+
+        return new RsData<>(
+                "402-2",
+                "잘못된 로그인 정보입니다."
         );
     }
 
