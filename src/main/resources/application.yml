@@ -28,3 +28,8 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
+custom:
+  jwt:
+    secretKey: d127ea373846896e7e71340db2b9ff759b37fbdc9bcd1a8d731ef12cc0cf284cd3fc9fdb049e5de3eadee20b6f816601dc2b782247ea0d4a41fd6a5b59e0590a
+  accessToken:
+    expirationSeconds: "#{60*20}"

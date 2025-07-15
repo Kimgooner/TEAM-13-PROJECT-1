@@ -22,9 +22,15 @@ public class Member extends BaseEntity {
     private String name;
     private String address;
     private Role role;
+    @Column(unique = true)
+    private String apiKey;
 
     public enum Role {
         ADMIN, USER
+    }
+
+    public void modifyApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     @Builder
@@ -35,6 +41,12 @@ public class Member extends BaseEntity {
         this.name = name;
         this.address = address;
         this.role = role;
+    }
+
+    public Member(int id, String email, String name) {
+        setId(id);
+        this.email = email;
+        this.name = name;
     }
 
     public boolean isAdmin() {

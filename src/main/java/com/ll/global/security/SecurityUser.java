@@ -1,5 +1,6 @@
 package com.ll.global.security;
 
+import com.ll.domain.member.entity.Member;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;

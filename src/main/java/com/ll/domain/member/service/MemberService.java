@@ -8,15 +8,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final AuthTokenService authTokenService;
     private final PasswordEncoder passwordEncoder;
 
-    public long count() {return memberRepository.count();}
+    // ------- 로그인 기능 -------- //
     public Member addUserMember(String email, String password, String name, String address){
         String encodedPassword = passwordEncoder.encode(password);
         Member member = Member.builder()
@@ -29,7 +31,6 @@ public class MemberService {
 
         return memberRepository.save(member);
     }
-
     public Member addAdminMember(String email, String password, String name, String address){
         String encodedPassword = passwordEncoder.encode(password);
         Member member = Member.builder()
@@ -42,19 +43,22 @@ public class MemberService {
 
         return memberRepository.save(member);
     }
-
     public void checkPassword(Member member, String password){
         if(!passwordEncoder.matches(password, member.getPassword()))
             throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
     }
 
+    // ------- 일반 서비스 -------- //
+    public long count() {return memberRepository.count();}
     public Optional<Member> findById(Integer id){return memberRepository.findById(id);}
     public List<Member> findAll(){return memberRepository.findAll();}
-
     public Optional<Member> findByEmail(String email){return memberRepository.findByEmail(email);}
     public Optional<Member> findByName(String name){return  memberRepository.findByName(name);}
-
     public void deleteById(Integer id){memberRepository.deleteById(id);}
-
     public void flush(){memberRepository.flush();}
+
+    // ------- 인증, 인가 -------- //
+    public Map<String, Object> payload(String accessToken) { return authTokenService.payload(accessToken); }
+    public String genAccessToken(Member member) { return authTokenService.genAccessToken(member); }
+    public Optional<Member> findByApiKey(String apiKey) { return memberRepository.findByApiKey(apiKey); }
 }
