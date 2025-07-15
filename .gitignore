@@ -358,3 +358,6 @@ db_dev.mv.db
 db_dev.trace.db
 
 # End of https://www.toptal.com/developers/gitig
+
+# 이미지 파일 폴더 무시
+/uploads/
