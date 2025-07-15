@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RsData<Void>> handleDuplicateEmail(DataIntegrityViolationException ex) {
         return new ResponseEntity<>(
                 new RsData<>(
-                        "409-1",
+                        "400-2",
                         "이미 사용 중인 이메일입니다."
                 ),
                 CONFLICT
