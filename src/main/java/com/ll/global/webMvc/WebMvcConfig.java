@@ -14,7 +14,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
 
         registry
-                .addMapping("/productImages/**") // 🔥 이미지 경로 추가
+                .addMapping("/productImages/**")
+                .allowedMethods("GET")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+
+        registry
+                .addMapping("/uploads/**")
                 .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET")
                 .allowedHeaders("*")
