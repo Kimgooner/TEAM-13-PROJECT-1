@@ -3,7 +3,6 @@ package com.ll.domain.product.controller;
 import com.ll.domain.product.dto.MenuProductDto;
 import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.service.ProductService;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,9 +26,8 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
@@ -165,6 +163,62 @@ public class ApiV1ProductControllerTest {
                     .andExpect(jsonPath("$.data[%d].stock".formatted(i)).value(product.getStock()))
                     .andExpect(jsonPath("$.data[%d].status".formatted(i)).value(product.getStatus().name()));
         }
+    }
+
+    @DisplayName("상품_수정")
+    @Test
+    void 상품_수정() throws Exception {
+
+        ResultActions resultActions = mvc.perform(
+                put("/api/v1/products/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "id": 1,
+                                    "productName": "수정된 커피 01",
+                                    "price": 10000,
+                                    "description": "수정된 커피 01 설명",
+                                    "stock": 10000,
+                                    "status": "SOLD_OUT",
+                                    "category": "TEA"
+                                }
+                                """)
+
+        ).andDo(print());
+
+        Product product = productService.getProduct(1);
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1ProductController.class))
+                .andExpect(handler().methodName("updateProduct"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(product.getId()))
+                .andExpect(jsonPath("$.data.productName").value(product.getProductName()))
+                .andExpect(jsonPath("$.data.price").value(product.getPrice()))
+                .andExpect(jsonPath("$.data.category").value(product.getCategory().name()))
+                .andExpect(jsonPath("$.data.productImage").value(product.getProductImage()))
+                .andExpect(jsonPath("$.data.description").value(product.getDescription()))
+                .andExpect(jsonPath("$.data.stock").value(product.getStock()))
+                .andExpect(jsonPath("$.data.status").value(product.getStatus().name()));
+
+    }
+
+    @DisplayName("단건_상품_삭제")
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+    void 단건_상품_삭제(int id) throws Exception {
+
+        ResultActions resultActions = mvc.perform(
+                delete("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1ProductController.class))
+                .andExpect(handler().methodName("deleteProduct"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(id))
+                .andExpect(jsonPath("$.msg").value("%d번 상품을 삭제했습니다.".formatted(id)));
     }
 
 }
