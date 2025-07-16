@@ -19,17 +19,32 @@ public class WishListService {
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
 
-
-    public WishList create(int memberId, int productId){
-        Member memeber = memberRepository.findById(memberId)
+    public WishList create(String memberEmail, int productId, int quantity){
+        Member member = memberRepository.findByEmail(memberEmail)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원이다."));
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품이다."));
+        if(quantity<=0){
+            throw new IllegalArgumentException("수량은 1 이상이어야 한다.");
+        }
 
-        WishList wishList = new WishList(memeber,product);
+        // 이미 찜 목록에 있는지 확인
+        Optional<WishList> existWishList = wishListRepository.findByMemberAndProduct(member, product);
+
+        WishList wishList;
+        if (existWishList.isPresent()) {
+            // 이미 장바구니에 있으면 수량 업데이트
+            wishList = existWishList.get();
+            wishList.setQuantity(wishList.getQuantity() + quantity);
+            //TODO : 재고확인?
+        } else {
+            // 없으면 새로 생성
+            wishList = new WishList(member, product, quantity);
+        }
 
         return wishListRepository.save(wishList);
     }
+    //여긴끝
 
     public List<WishList> getMemberWishList(int memberId) {
 
@@ -44,5 +59,34 @@ public class WishListService {
 
     public void delete(WishList wishList) {
         wishListRepository.delete(wishList);
+    }
+
+    public void setProductQuantityInWishList(int wishListId, int newQuantity) {
+        if (newQuantity < 0) {
+            throw new IllegalArgumentException("수량은 0 이상이어야 한다.");
+        }
+
+        WishList wishList = wishListRepository.findById(wishListId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 찜 목록 항목이다."));
+
+        if (newQuantity == 0) {
+            wishListRepository.delete(wishList);
+        } else {
+            wishList.setQuantity(newQuantity);
+            wishListRepository.save(wishList);
+        }
+    }
+
+    public void removeWishListItem(int wishListId) {
+        WishList wishList = wishListRepository.findById(wishListId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 찜 목록 항목이다."));
+        wishListRepository.delete(wishList);
+    }
+
+    public void clearWishList(String memberEmail) {
+        Member member = memberRepository.findByEmail(memberEmail)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원이다."));
+        List<WishList> memberWishLists = wishListRepository.findByMember(member);
+        wishListRepository.deleteAll(memberWishLists);
     }
 }
