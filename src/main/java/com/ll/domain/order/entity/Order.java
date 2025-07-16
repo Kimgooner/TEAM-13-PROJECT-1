@@ -1,7 +1,6 @@
 package com.ll.domain.order.entity;
 
 import com.ll.domain.member.entity.Member;
-import com.ll.domain.product.entity.Product;
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,18 +24,10 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    private int order_count;
-
-    @Column(length = 20)
-    private String product_name;
-
-    private int total_price;
-
     @Column(length = 300)
-
     private String address;
 
-    private boolean delivery_status;
+    private int total_price; // 총 주문 금액
 
     @Enumerated(EnumType.STRING) // Enum의 이름을 DB에 문자열로 저장하도록 설정
     private OrderStatus order_status; // 원래 Enum 이름 유지
@@ -46,12 +37,27 @@ public class Order extends BaseEntity {
         DELIVERED   // 배송 완료
     }
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "product_id", nullable = false) // ERD의 product_id 컬럼을 외래키로 사용
-    private Product product; // product_id 필드는 Product 엔티티 객체로 대체
-
-    private String email;
-
     @OneToMany(mappedBy = "order", fetch = LAZY, cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    
+    public void addOrderItem(OrderItem orderItem) {
+        orderItems.add(orderItem);
+        // orderItem에 해당하는 product의 재고 감소 로직 추가
+    }
+
+    public void clearOrderItems() {
+        orderItems.clear();
+        // 재고 복원 로직 추가
+    }
+
+    public int calculateTotalPrice() {
+        return orderItems.stream()
+                .mapToInt(OrderItem::getTotal_price)
+                .sum();
+    }
+
+    public void updateTotalPrice() {
+        this.total_price = calculateTotalPrice();
+    }
 }
