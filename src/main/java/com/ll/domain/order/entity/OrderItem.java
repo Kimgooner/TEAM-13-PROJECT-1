@@ -18,9 +18,9 @@ import static jakarta.persistence.FetchType.LAZY;
 @NoArgsConstructor
 public class OrderItem extends BaseEntity {
 
-    private int order_count;
+    private int quantity;
 
-    private int product_price;
+    private int product_price; // 주문 당시 상품 가격
 
     private int total_price;
 
@@ -33,4 +33,12 @@ public class OrderItem extends BaseEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    public OrderItem(Order order, Product product, int quantity){
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.product_price = product.getPrice();
+        this.total_price = product_price * quantity;
+    }
 }

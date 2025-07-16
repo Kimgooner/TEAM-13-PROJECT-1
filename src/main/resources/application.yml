@@ -16,11 +16,15 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create-drop
+    defer-datasource-initialization: true #
     properties:
       hibernate:
         format_sql: true
         highlight_sql: true
         use_sql_comments: true
+  sql:
+    init:
+      mode: always
   web:
     resources:
       static-locations: file:./uploads/

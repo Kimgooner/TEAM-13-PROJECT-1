@@ -1,6 +1,8 @@
 package com.ll.domain.product.service;
 
 import com.ll.domain.product.dto.CreateProductRequestDto;
+import com.ll.domain.product.dto.MenuProductDto;
+import com.ll.domain.product.dto.UpdateProductRequestDto;
 import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.entity.ProductCategory;
 import com.ll.domain.product.entity.ProductStatus;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -60,6 +64,59 @@ public class ProductService {
         } catch (Exception e) {
             throw new RuntimeException("파일 저장 실패", e);
         }
+    }
+
+    public List<MenuProductDto> getMenuProductsByCategory(String category) {
+        List<Product> products;
+        if (category.equals("ALL")) {
+            products = productRepository.findAll();
+        }else {
+            products = productRepository.findByCategory(ProductCategory.valueOf(category));
+        }
+
+        return products.stream()
+                //.sorted(Comparator.comparing(Product::getId)) // ID 오름차순 정렬
+                .map(product -> {
+                    MenuProductDto dto = new MenuProductDto();
+                    dto.setId(product.getId());
+                    dto.setProductName(product.getProductName());
+                    dto.setPrice(product.getPrice());
+                    dto.setCategory(product.getCategory().name());
+                    dto.setProductImage("http://localhost:8080" + product.getProductImage());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public Product getProduct(int id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("없는 상품입니다. ID: " + id));
+    }
+
+    public List<Product> getProducts() {
+        return productRepository.findAll();
+    }
+
+    public Product deleteProduct(int id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("없는 상품입니다. ID: " + id));
+
+        productRepository.delete(product);
+        return product;
+    }
+
+    public Product updateProduct(UpdateProductRequestDto updateProductRequestDto) {
+        Product product = productRepository.findById(updateProductRequestDto.getId())
+                .orElseThrow(() -> new RuntimeException("없는 상품입니다. ID: " + updateProductRequestDto.getId()));
+
+        product.setProductName(updateProductRequestDto.getProductName());
+        product.setPrice(updateProductRequestDto.getPrice());
+        product.setDescription(updateProductRequestDto.getDescription());
+        product.setStock(updateProductRequestDto.getStock());
+        product.setStatus(ProductStatus.valueOf(updateProductRequestDto.getStatus()));
+        product.setCategory(ProductCategory.valueOf(updateProductRequestDto.getCategory()));
+
+        return productRepository.save(product);
     }
 }
 

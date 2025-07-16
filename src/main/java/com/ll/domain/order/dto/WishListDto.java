@@ -6,11 +6,17 @@ import java.time.LocalDateTime;
 
 public record WishListDto(
         int id,
-        LocalDateTime createTime,
-        LocalDateTime modifyTime,
+        LocalDateTime createDate,
+        LocalDateTime modifyDate,
+
         int productId,
         String productName,
-        int memberId,
+
+        //프론트 장바구니 보고 추가한dto
+        int productPrice,
+        int quantity,
+        int itemTotalPrice,
+
         String email
 ) {
     public WishListDto(WishList wishList) {
@@ -23,8 +29,12 @@ public record WishListDto(
                 wishList.getProduct() != null ? wishList.getProduct().getId() : 0,
                 wishList.getProduct() != null ? wishList.getProduct().getProductName() : "알 수 없음",
 
+                //추가 부분.
+                wishList.getProduct() != null ? wishList.getProduct().getPrice() : 0, // productPrice
+                wishList.getQuantity(), // quantity
+                wishList.getProduct() != null ? wishList.getProduct().getPrice() * wishList.getQuantity() : 0, // itemTotalPrice
+
                 // Member 정보 (null 체크)
-                wishList.getMember() != null ? wishList.getMember().getId() : 0,
                 wishList.getMember() != null ? wishList.getMember().getEmail() : "알 수 없음"
         );
     }
