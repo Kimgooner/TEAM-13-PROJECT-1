@@ -1,8 +1,10 @@
 package com.ll.global.globalExceptionHandler;
 
+import com.ll.global.exception.ServiceException;
 import com.ll.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -68,5 +70,33 @@ public class GlobalExceptionHandler {
                 ),
                 CONFLICT
         );
+    }
+
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<RsData<Void>> handleServiceException(ServiceException ex) {
+        String[] parts = ex.getMessage().split(" : ", 2);
+        String code = parts.length > 0 ? parts[0] : "500-1";
+        String message = parts.length > 1 ? parts[1] : "알 수 없는 오류가 발생했습니다.";
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        if (code.startsWith("401")) {
+            status = HttpStatus.UNAUTHORIZED;
+        } else if (code.startsWith("403")) {
+            status = HttpStatus.FORBIDDEN;
+        } else if (code.startsWith("404")) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (code.startsWith("400")) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+
+        return new ResponseEntity<>(
+                new RsData<>(
+                        code,
+                        message
+                ),
+                status
+        );
+
     }
 }
