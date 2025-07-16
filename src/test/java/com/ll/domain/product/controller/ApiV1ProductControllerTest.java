@@ -1,10 +1,13 @@
 package com.ll.domain.product.controller;
 
 import com.ll.domain.product.dto.MenuProductDto;
+import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.service.ProductService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -78,15 +81,17 @@ public class ApiV1ProductControllerTest {
         }
     }
 
-    @Test
-    @DisplayName("상품 리스트 - ALL")
-    void 상품_리스트_ALL() throws Exception {
-        ResultActions resultActions = mvc.perform(
-                get("/api/v1/products/ALL")
-                        .contentType(MediaType.APPLICATION_JSON))
-                        .andDo(print());
+    @DisplayName("상품 리스트 조회 - 카테고리별")
+    @ParameterizedTest
+    @ValueSource(strings = {"ALL", "COFFEE", "TEA", "JUICE", "DESSERT"})
+    void 상품_리스트_카테고리별_조회(String category) throws Exception {
 
-        List<MenuProductDto> menuProducts = productService.getMenuProductsByCategory("ALL");
+        ResultActions resultActions = mvc.perform(
+                get("/api/v1/products/category/{category}", category)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print());
+
+        List<MenuProductDto> menuProducts = productService.getMenuProductsByCategory(category);
 
         resultActions
                 .andExpect(handler().handlerType(ApiV1ProductController.class))
@@ -95,13 +100,71 @@ public class ApiV1ProductControllerTest {
                 .andExpect(jsonPath("$.data.length()").value(menuProducts.size()));
 
         for (int i = 0; i < menuProducts.size(); i++) {
-            MenuProductDto menuProductDto = menuProducts.get(i);
+            MenuProductDto dto = menuProducts.get(i);
             resultActions
-                    .andExpect(jsonPath("$.data.[%d].id".formatted(i)).value(menuProductDto.getId()))
-                    .andExpect(jsonPath("$.data.[%d].productName".formatted(i)).value(menuProductDto.getProductName()))
-                    .andExpect(jsonPath("$.data.[%d].price".formatted(i)).value(menuProductDto.getPrice()))
-                    .andExpect(jsonPath("$.data.[%d].category".formatted(i)).value(menuProductDto.getCategory()))
-                    .andExpect(jsonPath("$.data.[%d].productImage".formatted(i)).value(menuProductDto.getProductImage()));
+                    .andExpect(jsonPath("$.data[%d].id".formatted(i)).value(dto.getId()))
+                    .andExpect(jsonPath("$.data[%d].productName".formatted(i)).value(dto.getProductName()))
+                    .andExpect(jsonPath("$.data[%d].price".formatted(i)).value(dto.getPrice()))
+                    .andExpect(jsonPath("$.data[%d].category".formatted(i)).value(dto.getCategory()))
+                    .andExpect(jsonPath("$.data[%d].productImage".formatted(i)).value(dto.getProductImage()));
         }
     }
+
+    @DisplayName("단건_상품_상세_조회")
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+    void 단건_상품_상세_조회(int id) throws Exception {
+
+        ResultActions resultActions = mvc.perform(
+                get("/api/v1/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print());
+
+        Product product = productService.getProduct(id);
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1ProductController.class))
+                .andExpect(handler().methodName("getProduct"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(product.getId()))
+                .andExpect(jsonPath("$.data.productName").value(product.getProductName()))
+                .andExpect(jsonPath("$.data.price").value(product.getPrice()))
+                .andExpect(jsonPath("$.data.category").value(product.getCategory().name()))
+                .andExpect(jsonPath("$.data.productImage").value(product.getProductImage()))
+                .andExpect(jsonPath("$.data.description").value(product.getDescription()))
+                .andExpect(jsonPath("$.data.stock").value(product.getStock()))
+                .andExpect(jsonPath("$.data.status").value(product.getStatus().name()));
+    }
+
+    @Test
+    @DisplayName("다건_상품_상세_조회")
+    void 다건_상품_상세_조회() throws Exception {
+
+        ResultActions resultActions = mvc.perform(
+                get("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print());
+
+        List<Product> products = productService.getProducts();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1ProductController.class))
+                .andExpect(handler().methodName("getProducts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(products.size()));
+
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
+            resultActions
+                    .andExpect(jsonPath("$.data[%d].id".formatted(i)).value(product.getId()))
+                    .andExpect(jsonPath("$.data[%d].productName".formatted(i)).value(product.getProductName()))
+                    .andExpect(jsonPath("$.data[%d].price".formatted(i)).value(product.getPrice()))
+                    .andExpect(jsonPath("$.data[%d].category".formatted(i)).value(product.getCategory().name()))
+                    .andExpect(jsonPath("$.data[%d].productImage".formatted(i)).value(product.getProductImage()))
+                    .andExpect(jsonPath("$.data[%d].description".formatted(i)).value(product.getDescription()))
+                    .andExpect(jsonPath("$.data[%d].stock".formatted(i)).value(product.getStock()))
+                    .andExpect(jsonPath("$.data[%d].status".formatted(i)).value(product.getStatus().name()));
+        }
+    }
+
 }

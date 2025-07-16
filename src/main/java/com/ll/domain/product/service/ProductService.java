@@ -86,5 +86,14 @@ public class ProductService {
                 })
                 .toList();
     }
+
+    public Product getProduct(int id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다. ID: " + id));
+    }
+
+    public List<Product> getProducts() {
+        return productRepository.findAll();
+    }
 }
 
