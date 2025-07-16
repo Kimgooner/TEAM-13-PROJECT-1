@@ -51,11 +51,6 @@ public class OrderService {
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
 
-            if(product.getStock() < quantity) {
-                throw new ServiceException("400-3", "%s의 재고가 부족합니다.".formatted(product.getProductName()));
-            }
-            // product의 재고 감소 로직 추가
-
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);
         }
@@ -80,11 +75,6 @@ public class OrderService {
             Product product = productRepository.findById(productIds.get(i))
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
-
-            if(product.getStock() < quantity) {
-                throw new ServiceException("400-3", "%s의 재고가 부족합니다.".formatted(product.getProductName()));
-            }
-            // product의 재고 감소 로직 추가
 
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);
