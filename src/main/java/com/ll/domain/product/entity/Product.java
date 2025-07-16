@@ -1,11 +1,11 @@
 package com.ll.domain.product.entity;
 
+import com.ll.global.exception.ServiceException;
 import com.ll.global.jpa.entity.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -30,5 +30,16 @@ public class Product extends BaseEntity {
 
     @Enumerated(EnumType.STRING) // enum 타입 사용, 문자열로 저장
     private ProductStatus status; // 상품 상태 (SALE - 판매 중, SOLD_OUT - 품절, STOPPED - 판매 중지)
+
+    public void increaseStock(int quantity) {
+        this.stock += quantity;
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stock < quantity) {
+            throw new ServiceException("400-1", "재고가 부족합니다.");
+        }
+        this.stock -= quantity;
+    }
 }
 

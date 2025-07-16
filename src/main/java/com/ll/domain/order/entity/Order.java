@@ -42,13 +42,17 @@ public class Order extends BaseEntity {
 
     
     public void addOrderItem(OrderItem orderItem) {
+        orderItem.getProduct().decreaseStock(orderItem.getQuantity());
         orderItems.add(orderItem);
-        // orderItem에 해당하는 product의 재고 감소 로직 추가
     }
 
     public void clearOrderItems() {
+        for(int i=0; i < orderItems.size(); i++) {
+            // 재고 복원 로직
+            OrderItem orderItem = orderItems.get(i);
+            orderItem.getProduct().increaseStock(orderItem.getQuantity());
+        }
         orderItems.clear();
-        // 재고 복원 로직 추가
     }
 
     public int calculateTotalPrice() {
