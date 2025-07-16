@@ -69,4 +69,16 @@ public class GlobalExceptionHandler {
                 CONFLICT
         );
     }
+
+
+    //새로 추가한 예외, orderApi에서 사용 예정
+    // IllegalStateException 처리: 주로 잘못된 객체 상태 (409 Conflict)
+    // 예: 이미 배송 완료된 주문을 취소하려 할 때
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<RsData<Void>> handleIllegalStateException(IllegalStateException ex) {
+        return new ResponseEntity<>(
+                new RsData<>("409-1", ex.getMessage()), // 409 Conflict
+                CONFLICT
+        );
+    }
 }
