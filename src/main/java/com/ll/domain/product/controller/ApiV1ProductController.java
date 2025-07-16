@@ -2,6 +2,7 @@ package com.ll.domain.product.controller;
 
 import com.ll.domain.product.dto.CreateProductRequestDto;
 import com.ll.domain.product.dto.MenuProductDto;
+import com.ll.domain.product.dto.UpdateProductRequestDto;
 import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.service.ProductService;
 import com.ll.global.rsData.RsData;
@@ -59,5 +60,22 @@ public class ApiV1ProductController {
         List<Product> products = productService.getProducts();
         return new RsData<>("200-1", "상세 상품 목록을 조회했습니다.", products);
     }
+
+    @Transactional
+    @DeleteMapping("/{id}")
+    @Operation(summary = "단건 상품 삭제", description = "단건 상품을 삭제합니다.")
+    public RsData<Product> deleteProduct(@PathVariable int id) {
+        Product product = productService.deleteProduct(id);
+        return new RsData<>("200-1", "%d번 상품을 삭제했습니다.".formatted(id), product);
+    }
+
+    @Transactional
+    @PutMapping("/update")
+    @Operation(summary = "상품 수정", description = "단건 상품을 수정합니다.")
+    public RsData<Product> updateProduct(@RequestBody UpdateProductRequestDto updateProductRequestDto) {
+        Product product = productService.updateProduct(updateProductRequestDto);
+        return new RsData<>("200-1", "%d번 상품을 수정했습니다.".formatted(updateProductRequestDto.getId()), product);
+    }
+
 }
 
