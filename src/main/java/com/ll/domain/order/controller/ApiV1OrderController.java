@@ -35,13 +35,12 @@ public class ApiV1OrderController {
                 .toList();
 
     }
+
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     @Operation(summary = "단건 조회")
-
     public OrderDto getItem(@PathVariable int id) {
         Order order = orderService.findById(id).get();
-
         return new OrderDto(order);
     }
 
@@ -94,9 +93,6 @@ public class ApiV1OrderController {
     }
 
     record  OrderModifyReqBody(
-            @NotNull(message = "회원 ID는 필수이다.")
-            int memberId, // 주문하는 회원의 ID
-
             @NotNull(message = "상품 ID 목록은 필수이다.")
             @Size(min = 1, message = "최소 하나의 상품은 포함해야 한다.")
             List<Integer> productIds, // 주문할 상품들의 ID 목록
@@ -118,7 +114,12 @@ public class ApiV1OrderController {
             @Valid @RequestBody OrderModifyReqBody reqBody
     ) {
         Order order = orderService.findById(id).get();
-//        orderService.modify(order,reqBody.memberId,reqBody.productIds,reqBody.quantities,reqBody.address);
+        orderService.modify(
+                order,
+                reqBody.productIds,
+                reqBody.quantities,
+                reqBody.address
+        );
 
         return new RsData<>(
                 "200-1",
