@@ -1,0 +1,35 @@
+package com.ll.domain.order.entity;
+
+import com.ll.domain.member.entity.Member;
+import com.ll.domain.product.entity.Product;
+import com.ll.global.jpa.entity.BaseEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import static jakarta.persistence.FetchType.LAZY;
+
+@Entity
+@Getter
+@NoArgsConstructor
+public class WishList extends BaseEntity {
+
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "email", nullable = false)
+    private Member member;
+
+
+    public WishList(Member member,Product product) {
+        this.member = member;
+        this.product = product;
+
+    }
+
+}
