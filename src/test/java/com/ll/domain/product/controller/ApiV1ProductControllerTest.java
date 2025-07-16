@@ -1,6 +1,8 @@
 package com.ll.domain.product.controller;
 
+import com.ll.domain.product.dto.MenuProductDto;
 import com.ll.domain.product.service.ProductService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +22,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -71,6 +75,33 @@ public class ApiV1ProductControllerTest {
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
+        }
+    }
+
+    @Test
+    @DisplayName("상품 리스트 - ALL")
+    void 상품_리스트_ALL() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                get("/api/v1/products/ALL")
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andDo(print());
+
+        List<MenuProductDto> menuProducts = productService.getMenuProductsByCategory("ALL");
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1ProductController.class))
+                .andExpect(handler().methodName("getMenuProductsByCategory"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(menuProducts.size()));
+
+        for (int i = 0; i < menuProducts.size(); i++) {
+            MenuProductDto menuProductDto = menuProducts.get(i);
+            resultActions
+                    .andExpect(jsonPath("$.data.[%d].id".formatted(i)).value(menuProductDto.getId()))
+                    .andExpect(jsonPath("$.data.[%d].productName".formatted(i)).value(menuProductDto.getProductName()))
+                    .andExpect(jsonPath("$.data.[%d].price".formatted(i)).value(menuProductDto.getPrice()))
+                    .andExpect(jsonPath("$.data.[%d].category".formatted(i)).value(menuProductDto.getCategory()))
+                    .andExpect(jsonPath("$.data.[%d].productImage".formatted(i)).value(menuProductDto.getProductImage()));
         }
     }
 }
