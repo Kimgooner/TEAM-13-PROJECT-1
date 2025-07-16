@@ -51,8 +51,6 @@ public class OrderService {
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
 
-            product.decreaseStock(quantity);
-
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);
         }
@@ -77,8 +75,6 @@ public class OrderService {
             Product product = productRepository.findById(productIds.get(i))
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
-
-            product.decreaseStock(quantity);
 
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);

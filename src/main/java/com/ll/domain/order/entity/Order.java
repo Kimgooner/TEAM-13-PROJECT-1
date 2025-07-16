@@ -47,9 +47,8 @@ public class Order extends BaseEntity {
     }
 
     public void clearOrderItems() {
-        for(int i=0; i < orderItems.size(); i++) {
-            // 재고 복원 로직
-            OrderItem orderItem = orderItems.get(i);
+        // 재고 복원 로직
+        for (OrderItem orderItem : orderItems) {
             orderItem.getProduct().increaseStock(orderItem.getQuantity());
         }
         orderItems.clear();
