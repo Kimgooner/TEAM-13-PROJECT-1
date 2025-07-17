@@ -19,8 +19,8 @@ public class WishListService {
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
 
-    public WishList create(String memberEmail, int productId, int quantity){
-        Member member = memberRepository.findByEmail(memberEmail)
+    public WishList create(int memberId, int productId, int quantity){
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원이다."));
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품이다."));
@@ -33,12 +33,9 @@ public class WishListService {
 
         WishList wishList;
         if (existWishList.isPresent()) {
-            // 이미 장바구니에 있으면 수량 업데이트
             wishList = existWishList.get();
             wishList.setQuantity(wishList.getQuantity() + quantity);
-            //TODO : 재고확인?
         } else {
-            // 없으면 새로 생성
             wishList = new WishList(member, product, quantity);
         }
 
@@ -83,8 +80,8 @@ public class WishListService {
         wishListRepository.delete(wishList);
     }
 
-    public void clearWishList(String memberEmail) {
-        Member member = memberRepository.findByEmail(memberEmail)
+    public void clearWishList(int memberId){
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원이다."));
         List<WishList> memberWishLists = wishListRepository.findByMember(member);
         wishListRepository.deleteAll(memberWishLists);

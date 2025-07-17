@@ -29,15 +29,13 @@ public class ProductService {
     @Value("${product.upload-dir}")
     private String dirName;
 
-    public Product createProduct(CreateProductRequestDto productDto, MultipartFile mainImage) {
-
-        String mainImageUrl = saveFile(mainImage);
+    public Product createProduct(CreateProductRequestDto productDto) {
 
         Product product = Product.builder()
                 .productName(productDto.getProductName())
                 .price(productDto.getPrice())
                 .description(productDto.getDescription())
-                .productImage(mainImageUrl)
+                .productImage(productDto.getImageUrl())
                 .stock(productDto.getStock())
                 .status(ProductStatus.valueOf(productDto.getStatus()))
                 .category(ProductCategory.valueOf(productDto.getCategory()))
@@ -46,24 +44,23 @@ public class ProductService {
         productRepository.save(product);
         return product;
     }
-
-    private String saveFile(MultipartFile file) {
-        try {
-            String uploadDir = System.getProperty("user.dir") + "/" + dirName;
-
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(fileName);
-            file.transferTo(filePath.toFile());
-            return "/productImages/" + fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("파일 저장 실패", e);
-        }
-    }
+    // 이미지 파일 저장 메서드
+//    private String saveFile(MultipartFile file) {
+//            String uploadDir = System.getProperty("user.dir") + "/" + dirName;
+//
+//            Path uploadPath = Paths.get(uploadDir);
+//            if (!Files.exists(uploadPath)) {
+//                Files.createDirectories(uploadPath);
+//            }
+//
+//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+//            Path filePath = uploadPath.resolve(fileName);
+//            file.transferTo(filePath.toFile());
+//            return "/productImages/" + fileName;
+//        } catch (Exception e) {
+//            throw new RuntimeException("파일 저장 실패", e);
+//        }
+//    }
 
     public List<MenuProductDto> getMenuProductsByCategory(String category) {
         List<Product> products;
@@ -81,7 +78,7 @@ public class ProductService {
                     dto.setProductName(product.getProductName());
                     dto.setPrice(product.getPrice());
                     dto.setCategory(product.getCategory().name());
-                    dto.setProductImage("http://localhost:8080" + product.getProductImage());
+                    dto.setProductImage(product.getProductImage());
                     return dto;
                 })
                 .toList();
@@ -114,6 +111,7 @@ public class ProductService {
         product.setStock(updateProductRequestDto.getStock());
         product.setStatus(ProductStatus.valueOf(updateProductRequestDto.getStatus()));
         product.setCategory(ProductCategory.valueOf(updateProductRequestDto.getCategory()));
+        product.setProductImage(updateProductRequestDto.getImageUrl());
 
         return productRepository.save(product);
     }

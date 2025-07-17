@@ -25,19 +25,25 @@ public class ApiV1WishListController {
     @GetMapping("/member/{memberId}")
     @Transactional(readOnly = true)
     @Operation(summary = "특정 회원의 wishList 목록 조회")
-    public List<WishListDto> getWishList(@PathVariable("memberId") int memberId) {
+    public RsData<List<WishListDto>> getWishList(@PathVariable("memberId") int memberId) {
         List<WishList> wishLists = wishListService.getMemberWishList(memberId);
 
-        return wishLists
+        List<WishListDto> dtoList = wishLists
                 .stream()
                 .map(WishListDto::new)
                 .toList();
+
+        return new RsData<>(
+                "200-1",
+                "위시리스트 목록을 조회했습니다.",
+                dtoList
+        );
     }
 
     //추가
     record AddWishListRequest(
-            @NotNull(message = "회원 Email은 필수이다.")
-            String memberEmail,
+            @NotNull(message = "회원 ID는 필수이다.")
+            int memberId,
             @NotNull(message = "상품 ID는 필수이다.")
             int productId,
             @Min(value =1, message = "수량은 1 이상이어야 한다.")
@@ -51,7 +57,7 @@ public class ApiV1WishListController {
     public RsData<WishListDto> create(@Valid @RequestBody
                                       AddWishListRequest req) {
         WishList wishList = wishListService.create(
-                req.memberEmail(),
+                req.memberId(),
                 req.productId(),
                 req.quantity()
         );
@@ -94,11 +100,11 @@ public class ApiV1WishListController {
         );
     }
 
-    @DeleteMapping("{memberEmail}/clear")
+    @DeleteMapping("/member/{memberId}")
     @Transactional
     @Operation(summary = "회원의 위시리스트 비우기")
-    public RsData<Void> clearMemberWishList(@PathVariable String memberEmail) {
-        wishListService.clearWishList(memberEmail);
+    public RsData<Void> clearMemberWishList(@PathVariable int memberId) {
+        wishListService.clearWishList(memberId);
         return new RsData<>(
                 "200-1",
                 "위시리스트가 모두 삭제되었습니다."

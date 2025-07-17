@@ -17,7 +17,7 @@ public record WishListDto(
         int quantity,
         int itemTotalPrice,
 
-        String email
+        int memberId
 ) {
     public WishListDto(WishList wishList) {
         this(
@@ -35,7 +35,7 @@ public record WishListDto(
                 wishList.getProduct() != null ? wishList.getProduct().getPrice() * wishList.getQuantity() : 0, // itemTotalPrice
 
                 // Member 정보 (null 체크)
-                wishList.getMember() != null ? wishList.getMember().getEmail() : "알 수 없음"
+                wishList.getMember() != null ? wishList.getMember().getId() : 0
         );
     }
 }
