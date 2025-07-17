@@ -22,15 +22,13 @@ public class ApiV1ProductController {
     private final ProductService productService;
 
     @Transactional
-    @PostMapping(value = "/create", consumes = "multipart/form-data")
+    @PostMapping(value = "/create")
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.\n" +
-            "'contentType: multipart/form-data' 형식으로 요청해야 합니다.")
+            "'contentType: MediaType.APPLICATION_JSON' 형식으로 요청해야 합니다.")
     public RsData<Product> createProduct(
-            @ModelAttribute CreateProductRequestDto productDto,
-            @RequestParam("mainImage") MultipartFile mainImage
-
+            @RequestBody CreateProductRequestDto productDto
     ) {
-        Product product = productService.createProduct(productDto, mainImage);
+        Product product = productService.createProduct(productDto);
         return new RsData<>("200-1", "상품이 등록되었습니다.", product);
     }
 
