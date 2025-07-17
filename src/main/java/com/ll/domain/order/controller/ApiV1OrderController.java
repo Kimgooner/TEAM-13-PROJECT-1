@@ -2,7 +2,6 @@ package com.ll.domain.order.controller;
 
 import com.ll.domain.order.dto.OrderDto;
 import com.ll.domain.order.entity.Order;
-import com.ll.domain.order.repository.OrderRepository;
 import com.ll.domain.order.service.OrderService;
 import com.ll.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,27 +20,34 @@ import java.util.List;
 @RequestMapping("/api/v1/orders")
 public class ApiV1OrderController {
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
 
     @GetMapping
     @Transactional(readOnly = true)
     @Operation(summary = "다건 조회")
-    public List<OrderDto> getItems(){
+    public RsData<List<OrderDto>> getItems(){
         List<Order> orders = orderService.findAll();
-
-        return orders
-                .stream()
-                .map(OrderDto::new)
+        List<OrderDto> dtoList = orders
+                .stream().
+                map(OrderDto::new)
                 .toList();
+
+        return new RsData<>(
+                "200-1",
+                "주문 목록을 조회했습니다.",
+                dtoList);
 
     }
 
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
     @Operation(summary = "단건 조회")
-    public OrderDto getItem(@PathVariable int id) {
+    public RsData<OrderDto> getItem(@PathVariable int id) {
         Order order = orderService.findById(id).get();
-        return new OrderDto(order);
+
+        return new RsData<>(
+                "200-1",
+                "주문을 조회했습니다.",
+                new OrderDto(order)
+        );
     }
 
 

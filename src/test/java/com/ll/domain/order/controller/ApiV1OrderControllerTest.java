@@ -1,13 +1,21 @@
 package com.ll.domain.order.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ll.domain.member.entity.Member;
+import com.ll.domain.member.service.MemberService;
 import com.ll.domain.order.entity.Order;
 import com.ll.domain.order.service.OrderService;
-import org.hamcrest.Matchers;
+import com.ll.domain.product.entity.Product;
+import com.ll.domain.product.repository.ProductRepository;
+import com.ll.domain.product.service.ProductService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -15,116 +23,179 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@ActiveProfiles("test") // 테스트 프로파일 활성화 (application-test.yml 사용)
-class ApiV1OrderControllerTest {
+public class ApiV1OrderControllerTest {
     @Autowired
     private MockMvc mvc;
     @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private MemberService memberService;
+    @Autowired
+    private ProductService productService;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
     private OrderService orderService;
 
+    private Member testMember;
+    private Product testProduct1, testProduct2;
+
+    @BeforeEach
+    void setUp() {
+        // 테스트에 필요한 회원 및 상품 데이터를 미리 생성
+        testMember = memberService.addUserMember("user1@test.com", "1234", "테스터1", "서울시 강남구");
+        testProduct1 = productRepository.findById(1).orElse(null);
+        testProduct2 = productRepository.findById(2).orElse(null);
+    }
+
     @Test
-    @DisplayName("주문 단건 조회")
-    void t4() throws Exception {
+    @DisplayName("POST /api/v1/orders : 주문 생성 성공")
+    @WithMockUser(username = "user1@test.com", roles = "USER")
+    void t1() throws Exception {
         // GIVEN
-        // 테스트를 위해 실행 전에 데이터가 있어야 한다. @SpringBootTest는 실제 DB를 사용할 수 있으므로,
-        // 테스트용 데이터를 미리 넣어두는 것이 좋다. (예: data.sql 또는 @BeforeEach)
-        // 여기서는 ID가 1인 주문이 이미 존재한다고 가정한다.
-        int id = 1;
+        ApiV1OrderController.OrderCreateReqBody requestBody = new ApiV1OrderController.OrderCreateReqBody(
+                testMember.getId(),
+                List.of(testProduct1.getId(), testProduct2.getId()),
+                List.of(1, 2),
+                "서울시 서초구"
+        );
+        String jsonBody = objectMapper.writeValueAsString(requestBody);
 
         // WHEN
-        ResultActions resultActions = mvc
-                .perform(
-                        get("/api/v1/orders/" + id)
+        ResultActions resultActions = mvc.perform(
+                        post("/api/v1/orders")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(jsonBody)
                 )
                 .andDo(print());
 
         // THEN
-        // 테스트가 독립적으로 실행되도록 서비스 계층을 직접 호출하기보다는, 응답 본문(JSON)의 값을 검증한다.
-        Order order = orderService.findById(id).orElse(null);
-
         resultActions
+                .andExpect(status().isCreated())
                 .andExpect(handler().handlerType(ApiV1OrderController.class))
-                .andExpect(handler().methodName("getItem"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(order.getId()))
-                .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(order.getCreateDate().toString().substring(0, 19))))
-                .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(order.getModifyDate().toString().substring(0, 19))))
-                // ERROR: 아래 필드들은 Order 엔티티에 존재하지 않는다. 주석 처리.
-                // .andExpect(jsonPath("$.orderCount").value(order.getOrder_count()))
-                // .andExpect(jsonPath("$.productName").value(order.getProduct_name()))
-                .andExpect(jsonPath("$.totalPrice").value(order.getTotal_price()))
-                .andExpect(jsonPath("$.address").value(order.getAddress()))
-                // OrderDto가 order_status를 올바르게 반환하는지 확인
-                .andExpect(jsonPath("$.orderStatus").value(order.getOrder_status().name()))
-                // ERROR: email은 Member 객체를 통해 접근해야 한다.
-                .andExpect(jsonPath("$.email").value(order.getMember().getEmail()));
-
+                .andExpect(handler().methodName("write"))
+                .andExpect(jsonPath("$.resultCode").value("201-1"))
+                .andExpect(jsonPath("$.data.address").value("서울시 서초구"))
+                .andExpect(jsonPath("$.data.orderItems.length()").value(2));
     }
 
     @Test
-    @DisplayName("존재하지 않는 주문 단건조회, 404")
-    void t6() throws Exception {
+    @DisplayName("GET /api/v1/orders/{id} : 단건 주문 조회 성공")
+    @WithMockUser(username = "user1@test.com", roles = "USER")
+    void t2() throws Exception {
         // GIVEN
-        int id = Integer.MAX_VALUE;
+        Order order = orderService.create(
+                testMember.getId(),
+                List.of(testProduct1.getId()),
+                List.of(3),
+                "부산시 해운대구"
+        );
 
         // WHEN
-        ResultActions resultActions = mvc
-                .perform(
-                        get("/api/v1/orders/" + id)
+        ResultActions resultActions = mvc.perform(
+                        get("/api/v1/orders/" + order.getId())
                 )
                 .andDo(print());
 
         // THEN
-        // 컨트롤러에서 .get()을 호출하면 NoSuchElementException이 발생하고,
-        // GlobalExceptionHandler가 이를 처리하여 적절한 HTTP 상태 코드를 반환해야 한다.
-        // 예를 들어 404 Not Found를 반환하도록 설정했다고 가정한다.
         resultActions
-                .andExpect(status().isNotFound()); // 혹은 isBadRequest() 등 예외 처리 정책에 따름
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getItem"))
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.data.id").value(order.getId()))
+                .andExpect(jsonPath("$.data.address").value("부산시 해운대구"))
+                .andExpect(jsonPath("$.data.orderItems[0].productName").value("아이스 라떼"));
     }
 
     @Test
-    @DisplayName("모든 주문 조회 성공")
-    void t5() throws Exception {
+    @DisplayName("GET /api/v1/orders : 주문 목록 조회 성공")
+    @WithMockUser(username = "user1@test.com", roles = "USER")
+    void t3() throws Exception {
+        // GIVEN
+        orderService.create(testMember.getId(), List.of(testProduct1.getId()), List.of(1), "주소1");
+        orderService.create(testMember.getId(), List.of(testProduct2.getId()), List.of(1), "주소2");
+
         // WHEN
-        ResultActions resultActions = mvc
-                .perform(
+        ResultActions resultActions = mvc.perform(
                         get("/api/v1/orders")
                 )
                 .andDo(print());
 
         // THEN
-        List<Order> ordersInDb = orderService.findAll();
-
-        // 컨트롤러의 getItems()는 List<OrderDto>를 직접 반환하므로, RsData 형식이 아니다.
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(handler().handlerType(ApiV1OrderController.class))
                 .andExpect(handler().methodName("getItems"))
-                .andExpect(jsonPath("$.length()").value(ordersInDb.size()));
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.data.length()").value(2));
+    }
 
-        for (int i = 0; i < ordersInDb.size(); i++) {
-            Order order = ordersInDb.get(i);
-            String basePath = "$[%d].".formatted(i);
+    @Test
+    @DisplayName("DELETE /api/v1/orders/{id} : 주문 삭제 성공")
+    @WithMockUser(username = "user1@test.com", roles = "USER")
+    void t4() throws Exception {
+        // GIVEN
+        Order order = orderService.create(
+                testMember.getId(),
+                List.of(testProduct1.getId()),
+                List.of(1),
+                "삭제될 주소"
+        );
 
-            resultActions
-                    .andExpect(jsonPath(basePath + "id").value(order.getId()))
-                    .andExpect(jsonPath(basePath + "createDate").value(Matchers.startsWith(order.getCreateDate().toString().substring(0, 19))))
-                    .andExpect(jsonPath(basePath + "modifyDate").value(Matchers.startsWith(order.getModifyDate().toString().substring(0, 19))))
-                    // ERROR: 아래 필드들은 Order 엔티티에 존재하지 않는다.
-                    // .andExpect(jsonPath(basePath + "orderCount").value(order.getOrder_count()))
-                    // .andExpect(jsonPath(basePath + "productName").value(order.getProduct_name()))
-                    .andExpect(jsonPath(basePath + "totalPrice").value(order.getTotal_price()))
-                    .andExpect(jsonPath(basePath + "address").value(order.getAddress()))
-                    .andExpect(jsonPath(basePath + "orderStatus").value(order.getOrder_status().name()))
-                    // ERROR: email은 Member 객체를 통해 접근해야 한다.
-                    .andExpect(jsonPath(basePath + "email").value(order.getMember().getEmail()));
-        }
+        // WHEN
+        ResultActions resultActions = mvc.perform(
+                        delete("/api/v1/orders/" + order.getId())
+                )
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("delete"))
+                .andExpect(jsonPath("$.resultCode").value("200-1"));
+
+
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/orders/{id} : 주문 수정 성공")
+    @WithMockUser(username = "user1@test.com", roles = "USER")
+    void t5() throws Exception {
+        // GIVEN: 수정할 주문을 미리 생성
+        Order order = orderService.create(
+                testMember.getId(),
+                List.of(testProduct1.getId()), // 원래는 상품1 1개 주문
+                List.of(1),
+                "수정 전 주소"
+        );
+
+        // 수정할 내용: 상품1 5개, 상품2 10개, 주소 변경
+        ApiV1OrderController.OrderModifyReqBody requestBody = new ApiV1OrderController.OrderModifyReqBody(
+                List.of(testProduct1.getId(), testProduct2.getId()),
+                List.of(5, 10),
+                "수정 후 주소"
+        );
+        String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+        // WHEN
+        ResultActions resultActions = mvc.perform(
+                        put("/api/v1/orders/" + order.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(jsonBody)
+                )
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("modify"))
+                .andExpect(jsonPath("$.resultCode").value("200-1"));
     }
 }

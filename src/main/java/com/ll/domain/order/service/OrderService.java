@@ -22,12 +22,13 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     public List<Order> findAll() {
-        return orderRepository.findAll();
+        return orderRepository.findAllWithItems();
     }
 
     public Optional<Order> findById(int id) {
-        return orderRepository.findById(id);
+        return orderRepository.findByIdWithItems(id);
     }
+
 
     public void delete(Order order) {
         orderRepository.delete(order);
