@@ -25,7 +25,7 @@ public class WishList extends BaseEntity {
     private Product product;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "email", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Column(nullable = false)
