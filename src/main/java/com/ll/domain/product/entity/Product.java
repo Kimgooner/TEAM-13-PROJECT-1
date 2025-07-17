@@ -31,15 +31,17 @@ public class Product extends BaseEntity {
     @Enumerated(EnumType.STRING) // enum 타입 사용, 문자열로 저장
     private ProductStatus status; // 상품 상태 (SALE - 판매 중, SOLD_OUT - 품절, STOPPED - 판매 중지)
 
+
     public void increaseStock(int quantity) {
-        this.stock += quantity;
+        stock += quantity;
     }
 
     public void decreaseStock(int quantity) {
-        if (this.stock < quantity) {
+        if (stock < quantity) {
             throw new ServiceException("400-1", "재고가 부족합니다.");
         }
-        this.stock -= quantity;
+        stock -= quantity;
     }
 }
+
 

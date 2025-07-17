@@ -7,16 +7,15 @@ import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.entity.ProductCategory;
 import com.ll.domain.product.entity.ProductStatus;
 import com.ll.domain.product.repository.ProductRepository;
-
+import com.ll.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -117,6 +116,18 @@ public class ProductService {
         product.setCategory(ProductCategory.valueOf(updateProductRequestDto.getCategory()));
 
         return productRepository.save(product);
+    }
+
+    public void increaseStock(int id, int quantity) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("404-1", "해당 상품이 존재하지 않습니다."));
+        product.increaseStock(quantity);
+    }
+
+    public void decreaseStock(int id, int quantity) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ServiceException("404-1", "해당 상품이 존재하지 않습니다."));
+        product.decreaseStock(quantity);
     }
 }
 
