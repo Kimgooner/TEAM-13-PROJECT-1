@@ -74,7 +74,7 @@ public class ApiV1WishListControllerTest {
     void t1() throws Exception {
         // Given
         ApiV1WishListController.AddWishListRequest requestBody = new ApiV1WishListController.AddWishListRequest(
-                testMember1.getEmail(), // memberEmail 사용
+                testMember1.getId(),
                 testProduct1.getId(),
                 1
         );
@@ -97,7 +97,7 @@ public class ApiV1WishListControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("상품이 위시리스트에 담겼습니다."))
                 .andExpect(jsonPath("$.data.id").isNumber())
-                .andExpect(jsonPath("$.data.email").value(testMember1.getEmail()))
+                .andExpect(jsonPath("$.data.id").value(testMember1.getId()))
                 .andExpect(jsonPath("$.data.productId").value(testProduct1.getId()))
                 .andExpect(jsonPath("$.data.quantity").value(1));
     }
@@ -108,10 +108,10 @@ public class ApiV1WishListControllerTest {
     @WithMockUser(username = "testuser1@example.com", roles = "USER")
     void t2() throws Exception {
         // Given: 미리 찜 목록에 항목 추가
-        WishList existingItem = wishListService.create(testMember1.getEmail(), testProduct1.getId(), 1); // 초기 수량 1
+        WishList existingItem = wishListService.create(testMember1.getId(), testProduct1.getId(), 1); // 초기 수량 1
 
         ApiV1WishListController.AddWishListRequest requestBody = new ApiV1WishListController.AddWishListRequest(
-                testMember1.getEmail(),
+                testMember1.getId(),
                 testProduct1.getId(),
                 2 // 2개 더 추가
         );
@@ -138,7 +138,7 @@ public class ApiV1WishListControllerTest {
     @WithMockUser(username = "testuser1@example.com", roles = "USER")
     void t3() throws Exception {
         // Given: 찜 목록 항목 생성
-        WishList wishListToRemove = wishListService.create(testMember1.getEmail(), testProduct1.getId(), 1);
+        WishList wishListToRemove = wishListService.create(testMember1.getId(), testProduct1.getId(), 1);
         int wishListId = wishListToRemove.getId();
 
         // When
@@ -181,11 +181,38 @@ public class ApiV1WishListControllerTest {
                 .andExpect(jsonPath("$.msg").value("존재하지 않는 찜 목록 항목이다."));
     }
 
-
     @Test
-    @DisplayName("t5_특정 회원의 찜 목록 조회 실패 - 존재하지 않는 회원")
+    @DisplayName("t5_특정_회원의_찜_목록_조회_성공")
     @WithMockUser(username = "testuser1@example.com", roles = "USER")
     void t5() throws Exception {
+        // Given: 찜 목록에 2개 상품 추가
+        wishListService.create(testMember1.getId(), testProduct1.getId(), 1);
+        wishListService.create(testMember1.getId(), testProduct2.getId(), 2);
+
+        // When
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/wishlist/member/" + testMember1.getId())
+                )
+                .andDo(print());
+
+        // Then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().methodName("getWishList"))
+                // [수정] 응답이 List가 아닌 RsData 형식이므로, RsData 구조를 검증
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("위시리스트 목록을 조회했습니다."))
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].productId").value(testProduct1.getId()))
+                .andExpect(jsonPath("$.data[1].productId").value(testProduct2.getId()));
+    }
+
+
+    @Test
+    @DisplayName("t6_특정 회원의 찜 목록 조회 실패 - 존재하지 않는 회원")
+    @WithMockUser(username = "testuser1@example.com", roles = "USER")
+    void t6() throws Exception {
         // Given: 존재하지 않는 회원 ID
         int nonExistentMemberId = Integer.MAX_VALUE;
 
@@ -205,17 +232,17 @@ public class ApiV1WishListControllerTest {
     }
 
     @Test
-    @DisplayName("t6_찜 목록 비우기 성공")
+    @DisplayName("t7_찜 목록 비우기 성공")
     @WithMockUser(username = "testuser1@example.com", roles = "USER")
-    void t6() throws Exception {
+    void t7() throws Exception {
         // Given: 찜 목록 항목 생성
-        wishListService.create(testMember1.getEmail(), testProduct1.getId(), 1);
-        wishListService.create(testMember1.getEmail(), testProduct2.getId(), 2);
+        wishListService.create(testMember1.getId(), testProduct1.getId(), 1);
+        wishListService.create(testMember1.getId(), testProduct2.getId(), 2);
 
         // When - 이메일로 요청 변경
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/wishlist/" + testMember1.getEmail() + "/clear")
+                        delete("/api/v1/wishlist/member/" + testMember1.getId())
                 )
                 .andDo(print());
 
@@ -227,7 +254,7 @@ public class ApiV1WishListControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("위시리스트가 모두 삭제되었습니다."));
 
-        // 검증도 이메일 기반으로 변경 (서비스 메서드가 이메일을 받는다면)
+
         assertThat(wishListService.getMemberWishList(testMember1.getId())).isEmpty();
     }
 
