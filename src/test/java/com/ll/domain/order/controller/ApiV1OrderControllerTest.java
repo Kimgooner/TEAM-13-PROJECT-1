@@ -8,12 +8,16 @@ import com.ll.domain.order.service.OrderService;
 import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.repository.ProductRepository;
 import com.ll.domain.product.service.ProductService;
+import com.ll.global.rq.Rq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,6 +49,9 @@ public class ApiV1OrderControllerTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private Rq rq;
+
     private Member testMember;
     private Product testProduct1, testProduct2;
 
@@ -54,6 +61,9 @@ public class ApiV1OrderControllerTest {
         testMember = memberService.addUserMember("user1@test.com", "1234", "테스터1", "서울시 강남구");
         testProduct1 = productRepository.findById(1).orElse(null);
         testProduct2 = productRepository.findById(2).orElse(null);
+
+        // 테스트 Rq에 사용자 지정
+        ((TestRq) rq).setActor(testMember);
     }
 
     @Test
@@ -62,7 +72,6 @@ public class ApiV1OrderControllerTest {
     void t1() throws Exception {
         // GIVEN
         ApiV1OrderController.OrderCreateReqBody requestBody = new ApiV1OrderController.OrderCreateReqBody(
-                testMember.getId(),
                 List.of(testProduct1.getId(), testProduct2.getId()),
                 List.of(1, 2),
                 "서울시 서초구"
@@ -197,5 +206,53 @@ public class ApiV1OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(handler().methodName("modify"))
                 .andExpect(jsonPath("$.resultCode").value("200-1"));
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        @Primary
+        Rq testRq() {
+            return new TestRq();
+        }
+    }
+
+    static class TestRq extends Rq {
+        private Member actor;
+
+        public TestRq() {
+            super(null, null); // 실제 req/resp는 필요 없으니 null
+        }
+
+        void setActor(Member actor) {
+            this.actor = actor;
+        }
+
+        @Override
+        public Member getActor() {
+            return actor;
+        }
+
+        @Override
+        public String getHeader(String name, String defaultValue) {
+            return defaultValue;
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+        }
+
+        @Override
+        public String getCookieValue(String name, String defaultValue) {
+            return defaultValue;
+        }
+
+        @Override
+        public void setCookie(String name, String value) {
+        }
+
+        @Override
+        public void deleteCookie(String name) {
+        }
     }
 }
