@@ -77,5 +77,35 @@ public class ApiV1ProductController {
         return new RsData<>("200-1", "%d번 상품을 수정했습니다.".formatted(updateProductRequestDto.getId()), product);
     }
 
+    @Transactional
+    @PatchMapping("/{id}/stock/increase")
+    @Operation(summary = "재고 증가")
+    public RsData<Void> increaseStock(
+            @PathVariable int id,
+            @RequestParam int quantity
+    ) {
+        productService.increaseStock(id, quantity);
+
+        return new RsData<>(
+                "200-1",
+                "상품 ID %d의 재고가 %d만큼 증가했습니다.".formatted(id, quantity)
+        );
+    }
+
+    @Transactional
+    @PatchMapping("/{id}/stock/decrease")
+    @Operation(summary = "재고 감소")
+    public RsData<Void> decreaseStock(
+            @PathVariable int id,
+            @RequestParam int quantity
+    ) {
+        productService.decreaseStock(id, quantity);
+
+        return new RsData<>(
+                "200-2",
+                "상품 ID %d의 재고가 %d만큼 감소했습니다.".formatted(id, quantity)
+        );
+    }
+
 }
 
