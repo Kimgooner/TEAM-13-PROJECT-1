@@ -1,6 +1,7 @@
 package com.ll.domain.order.entity;
 
 import com.ll.domain.member.entity.Member;
+import com.ll.global.exception.ServiceException;
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -65,5 +66,17 @@ public class Order extends BaseEntity {
 
     public void updateTotalPrice() {
         this.total_price = calculateTotalPrice();
+    }
+
+    public void checkActorCanModify(Member actor) {
+        if (!this.member.equals(actor)) {
+            throw new ServiceException("403-1", "해당 주문을 수정할 권한이 없습니다.");
+        }
+    }
+
+    public void checkActorCanDelete(Member actor) {
+        if (!this.member.equals(actor)) {
+            throw new ServiceException("403-2", "해당 주문을 삭제할 권한이 없습니다.");
+        }
     }
 }
