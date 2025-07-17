@@ -25,11 +25,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/favicon.ico").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/", "/members/login", "/members/signup").permitAll() //로그인안하면 3곳만.
-                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/**", "/api/*/members/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/*/products/**").permitAll() //상품 조회 API 허용
+                        .requestMatchers(
+                                "/",
+                                "/favicon.ico",
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/members/login",
+                                "/members/signup"
+                        ).permitAll() //로그인안하면 3곳만.
+                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/**", "/api/*/members/login", "/api/*/members/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/*/products/**", "/api/*/members/me").permitAll() //상품 조회 API 허용
 
                         .requestMatchers("/admin/**", "/api/*/admin/**").hasRole("ADMIN") //ADMIN 경로 규칙
 
