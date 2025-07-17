@@ -1,8 +1,10 @@
 package com.ll.domain.order.controller;
 
+import com.ll.domain.member.entity.Member;
 import com.ll.domain.order.dto.OrderDto;
 import com.ll.domain.order.entity.Order;
 import com.ll.domain.order.service.OrderService;
+import com.ll.global.rq.Rq;
 import com.ll.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/v1/orders")
 public class ApiV1OrderController {
     private final OrderService orderService;
+    private final Rq rq;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -130,6 +133,30 @@ public class ApiV1OrderController {
         return new RsData<>(
                 "200-1",
                 "%d번 주문이 수정되었습니다.".formatted(order.getId())
+        );
+    }
+
+    @GetMapping("/my")
+    @Transactional(readOnly = true)
+    @Operation(summary = "사용자 주문 목록 조회")
+    public RsData<List<OrderDto>> getMyOrders() {
+        Member actor = rq.getActor();
+
+        if (actor == null) {
+            return new RsData<>(
+                    "401-1",
+                    "로그인이 필요합니다."
+            );
+        }
+
+        List<Order> myOrders = orderService.findByMember(actor);
+
+        return new RsData<>(
+                "200-1",
+                "나의 주문 목록 조회 성공",
+                myOrders.stream()
+                        .map(OrderDto::new)
+                        .toList()
         );
     }
 
