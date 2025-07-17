@@ -60,7 +60,6 @@ public class OrderService {
         order.clearOrderItems();
 
         populateOrder(order, productIds, quantities, address);
-
         return orderRepository.save(order);
     }
 

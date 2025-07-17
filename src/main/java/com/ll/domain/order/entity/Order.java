@@ -10,8 +10,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static jakarta.persistence.CascadeType.PERSIST;
-import static jakarta.persistence.CascadeType.REMOVE;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
@@ -38,19 +36,23 @@ public class Order extends BaseEntity {
         DELIVERED   // 배송 완료
     }
 
-    @OneToMany(mappedBy = "order", fetch = LAZY, cascade = {PERSIST, REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", fetch = LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     
     public void addOrderItem(OrderItem orderItem) {
         orderItem.getProduct().decreaseStock(orderItem.getQuantity());
         orderItems.add(orderItem);
+        if(orderItem.getOrder() != this) {
+            orderItem.setOrder(this); // 양방향 관계 보장
+        }
     }
 
     public void clearOrderItems() {
         // 재고 복원 로직
         for (OrderItem orderItem : orderItems) {
             orderItem.getProduct().increaseStock(orderItem.getQuantity());
+            orderItem.setOrder(null); // 연관관계 해제
         }
         orderItems.clear();
     }
