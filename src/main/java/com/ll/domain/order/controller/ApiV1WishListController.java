@@ -88,11 +88,18 @@ public class ApiV1WishListController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    record SetWishListDeleteReqBody(
+            int memberId,
+            int productId
+    ) {}
+
+    @DeleteMapping
     @Transactional
     @Operation(summary = "위시리스트 상품 제거")
-    public RsData<Void> delete(@PathVariable("id") int id) {
-        wishListService.removeWishListItem(id);
+    public RsData<Void> delete(@RequestBody SetWishListDeleteReqBody req) {
+        wishListService.removeWishListItem(
+                req.memberId, req.productId
+        );
         return new RsData<>(
                 "200-1",
                 "위시리스트가 삭제되었습니다."
