@@ -34,27 +34,16 @@ public class OrderService {
     }
 
     public Order create(int memberId, List<Integer> productIds,  List<Integer> quantities, String address) {
-        // 입력값 검증
-        if (productIds.size() != quantities.size()) {
-            throw new ServiceException("400-4", "상품 ID 목록과 수량 목록의 크기가 일치하지 않습니다.");
-        }
+        validateProductInput(productIds, quantities);
 
-        Order order = new Order();
         Member member = memberRepository.findById(memberId).
                 orElseThrow(() -> new ServiceException("404-1", "해당 회원이 존재하지 않습니다."));
+
+        Order order = new Order();
         order.setMember(member);
-        order.setAddress(address);
         order.setOrder_status(Order.OrderStatus.ORDERED);
 
-        for(int i = 0; i < productIds.size(); i++) {
-            Product product = productRepository.findById(productIds.get(i))
-                    .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
-            int quantity = quantities.get(i);
-
-            OrderItem orderItem = new OrderItem(order, product, quantity);
-            order.addOrderItem(orderItem);
-        }
-        order.updateTotalPrice();
+        populateOrder(order, productIds, quantities, address);
 
         return orderRepository.save(order);
     }
@@ -64,14 +53,24 @@ public class OrderService {
         if (order.getOrder_status() == Order.OrderStatus.DELIVERED) {
             throw new ServiceException("400-5", "배송 완료된 주문은 수정할 수 없습니다.");
         }
-        // 입력값 검증
-        if (productIds.size() != quantities.size()) {
-            throw new ServiceException("400-4", "상품 ID 목록과 수량 목록의 크기가 일치하지 않습니다.");
-        }
+
+        validateProductInput(productIds, quantities);
 
         order.clearOrderItems();
 
-        for(int i=0; i<productIds.size(); i++) {
+        populateOrder(order, productIds, quantities, address);
+
+        return orderRepository.save(order);
+    }
+
+    private void validateProductInput(List<Integer> productIds, List<Integer> quantities) {
+        if (productIds.size() != quantities.size()) {
+            throw new ServiceException("400-4", "상품 ID 목록과 수량 목록의 크기가 일치하지 않습니다.");
+        }
+    }
+
+    private void populateOrder(Order order, List<Integer> productIds, List<Integer> quantities, String address) {
+        for (int i = 0; i < productIds.size(); i++) {
             Product product = productRepository.findById(productIds.get(i))
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
@@ -79,9 +78,7 @@ public class OrderService {
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);
         }
-
         order.setAddress(address);
         order.updateTotalPrice();
-        return orderRepository.save(order);
     }
 }
