@@ -82,4 +82,8 @@ public class OrderService {
         order.setAddress(address);
         order.updateTotalPrice();
     }
+
+    public List<Order> findByMember(Member member) {
+        return orderRepository.findByMemberIdWithItems(member.getId());
+    }
 }

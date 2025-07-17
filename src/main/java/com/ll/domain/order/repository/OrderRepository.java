@@ -16,4 +16,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o FROM Order o")
     List<Order> findAllWithItems();
+
+    @Query("SELECT o FROM Order o " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
+            "WHERE o.member.id = :memberId AND o.order_status = 'ORDERED' " + // 필요하면 조건 추가
+            "ORDER BY o.id DESC")
+    List<Order> findByMemberIdWithItems(@Param("memberId") int memberId);
 }
