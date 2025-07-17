@@ -42,7 +42,6 @@ public class Order extends BaseEntity {
 
     
     public void addOrderItem(OrderItem orderItem) {
-        orderItem.getProduct().decreaseStock(orderItem.getQuantity());
         orderItems.add(orderItem);
         if(orderItem.getOrder() != this) {
             orderItem.setOrder(this); // 양방향 관계 보장
@@ -50,9 +49,7 @@ public class Order extends BaseEntity {
     }
 
     public void clearOrderItems() {
-        // 재고 복원 로직
         for (OrderItem orderItem : orderItems) {
-            orderItem.getProduct().increaseStock(orderItem.getQuantity());
             orderItem.setOrder(null); // 연관관계 해제
         }
         orderItems.clear();

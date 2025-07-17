@@ -31,6 +31,8 @@ public class OrderService {
 
 
     public void delete(Order order) {
+        // 주문 삭제 시 재고 복원 해야하는지 여부는 비즈니스 로직에 따라 결정
+        //restoreStock(order);
         orderRepository.delete(order);
     }
 
@@ -44,7 +46,7 @@ public class OrderService {
         order.setMember(member);
         order.setOrder_status(Order.OrderStatus.ORDERED);
 
-        populateOrder(order, productIds, quantities, address);
+        fillOrderWithItems(order, productIds, quantities, address);
 
         return orderRepository.save(order);
     }
@@ -57,9 +59,11 @@ public class OrderService {
 
         validateProductInput(productIds, quantities);
 
+        restoreStock(order);
         order.clearOrderItems();
 
-        populateOrder(order, productIds, quantities, address);
+        fillOrderWithItems(order, productIds, quantities, address);
+
         return orderRepository.save(order);
     }
 
@@ -69,17 +73,33 @@ public class OrderService {
         }
     }
 
-    private void populateOrder(Order order, List<Integer> productIds, List<Integer> quantities, String address) {
+    private void fillOrderWithItems(Order order, List<Integer> productIds, List<Integer> quantities, String address) {
         for (int i = 0; i < productIds.size(); i++) {
             Product product = productRepository.findById(productIds.get(i))
                     .orElseThrow(() -> new ServiceException("404-2", "해당 상품이 존재하지 않습니다."));
             int quantity = quantities.get(i);
+
+            checkStock(product, quantity);
+            product.decreaseStock(quantity);
 
             OrderItem orderItem = new OrderItem(order, product, quantity);
             order.addOrderItem(orderItem);
         }
         order.setAddress(address);
         order.updateTotalPrice();
+    }
+
+    private void checkStock(Product product, int quantity) {
+        if (product.getStock() < quantity) {
+            throw new ServiceException("400-6", "상품 %s의 재고가 부족합니다.".formatted(product.getProductName()));
+        }
+    }
+
+    public void restoreStock(Order order) {
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = item.getProduct();
+            product.increaseStock(item.getQuantity());
+        }
     }
 
     public List<Order> findByMember(Member member) {
