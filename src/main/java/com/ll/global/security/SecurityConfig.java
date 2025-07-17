@@ -27,12 +27,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        // Product 관련 GET 요청은 인증 없이 접근 가능하게 하는 코드 추가 예정
-                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/user", "/api/*/members/signup/admin").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/*/members/login", "/api/*/members/logout").permitAll()
-                        .requestMatchers("/api/*/adm/**").hasRole("ADMIN")
-                        .requestMatchers("/api/*/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/", "/members/login", "/members/signup").permitAll() //로그인안하면 3곳만.
+                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/**", "/api/*/members/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/*/products/**").permitAll() //상품 조회 API 허용
+
+                        .requestMatchers("/admin/**", "/api/*/admin/**").hasRole("ADMIN") //ADMIN 경로 규칙
+
+
+                        .anyRequest().authenticated() //규칙 authenticated로 변경
                 )
                 .headers(
                         headers -> headers
