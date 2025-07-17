@@ -70,18 +70,17 @@ public class ApiV1WishListController {
     }
 
     record SetWishListQuantityReqBody(
-            @NotNull(message = "새로운 수량은 필수이다.")
-            @Min(value = 0, message = "수량은 0 이상이어야 한다. 0이면 제거.")
+            int memberId,
+            int productId,
             int newQuantity
     ) {}
 
-    @PutMapping("/{id}/quantity")
+    @PutMapping("/quantity")
     @Transactional
     @Operation(summary = "찜 목록(장바구니) 항목 수량 변경")
-    public RsData<Void> setWishListQuantity(@PathVariable("id") int id, @Valid @RequestBody SetWishListQuantityReqBody req) {
+    public RsData<Void> setWishListQuantity(@RequestBody SetWishListQuantityReqBody req) {
         wishListService.setProductQuantityInWishList(
-                id,
-                req.newQuantity()
+                req.memberId, req.productId, req.newQuantity
         );
         return new RsData<>(
                 "200-1",

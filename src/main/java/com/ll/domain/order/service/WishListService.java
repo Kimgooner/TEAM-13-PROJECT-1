@@ -58,13 +58,16 @@ public class WishListService {
         wishListRepository.delete(wishList);
     }
 
-    public void setProductQuantityInWishList(int wishListId, int newQuantity) {
-        if (newQuantity < 0) {
-            throw new IllegalArgumentException("수량은 0 이상이어야 한다.");
-        }
+    public void setProductQuantityInWishList(int memberId, int productId, int newQuantity) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        WishList wishList = wishListRepository.findById(wishListId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 찜 목록 항목이다."));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+
+        WishList wishList = wishListRepository.findByMemberAndProduct(member, product)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
         if (newQuantity == 0) {
             wishListRepository.delete(wishList);

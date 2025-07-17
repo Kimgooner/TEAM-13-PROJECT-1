@@ -38,7 +38,9 @@ public class SecurityConfig {
                                 "/members/signup"
                         ).permitAll() //로그인안하면 3곳만.
                         .requestMatchers(HttpMethod.POST, "/api/*/members/signup/**", "/api/*/members/login", "/api/*/members/logout").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/*/products/**", "/api/*/members/me").permitAll() //상품 조회 API 허용
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll() //상품 조회 API 허용
+                        .requestMatchers(HttpMethod.PUT, "/api/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
 
                         .requestMatchers("/admin/**", "/api/*/admin/**").hasRole("ADMIN") //ADMIN 경로 규칙
 
@@ -101,7 +103,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
