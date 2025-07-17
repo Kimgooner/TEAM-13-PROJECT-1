@@ -99,4 +99,25 @@ public class GlobalExceptionHandler {
         );
 
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<RsData<Void>> handle(IllegalArgumentException ex) {
+        // 찜 목록 관련 예외인지 확인
+        if (ex.getMessage().contains("존재하지 않는 찜 목록 항목이다")) {
+            return new ResponseEntity<>(
+                    new RsData<>(
+                            "404-1",
+                            ex.getMessage()
+                    ),
+                    NOT_FOUND
+            );
+        }
+
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "400-1",
+                        ex.getMessage()
+                ),
+                BAD_REQUEST
+        );
+    }
 }
