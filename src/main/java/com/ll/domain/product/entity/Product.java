@@ -40,7 +40,12 @@ public class Product extends BaseEntity {
         if (stock < quantity) {
             throw new ServiceException("400-1", "재고가 부족합니다.");
         }
+
         stock -= quantity;
+
+        if(stock == 0) {
+            status = ProductStatus.SOLD_OUT; // 재고가 0이 되면 품절 상태로 변경
+        }
     }
 }
 
