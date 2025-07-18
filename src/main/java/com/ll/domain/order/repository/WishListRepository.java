@@ -13,4 +13,6 @@ public interface WishListRepository extends JpaRepository<WishList, Integer> {
     List<WishList> findByMember(Member member);
 
     Optional<WishList> findByMemberAndProduct(Member member, Product product);
+
+
 }

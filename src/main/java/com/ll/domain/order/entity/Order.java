@@ -1,6 +1,7 @@
 package com.ll.domain.order.entity;
 
 import com.ll.domain.member.entity.Member;
+import com.ll.global.exception.ServiceException;
 import com.ll.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,14 +11,13 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static jakarta.persistence.CascadeType.PERSIST;
-import static jakarta.persistence.CascadeType.REMOVE;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "orders")
 public class Order extends BaseEntity {
 
     @ManyToOne(fetch = LAZY)
@@ -37,18 +37,22 @@ public class Order extends BaseEntity {
         DELIVERED   // 배송 완료
     }
 
-    @OneToMany(mappedBy = "order", fetch = LAZY, cascade = {PERSIST, REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", fetch = LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
-        // orderItem에 해당하는 product의 재고 감소 로직 추가
+        if(orderItem.getOrder() != this) {
+            orderItem.setOrder(this); // 양방향 관계 보장
+        }
     }
 
     public void clearOrderItems() {
+        for (OrderItem orderItem : orderItems) {
+            orderItem.setOrder(null); // 연관관계 해제
+        }
         orderItems.clear();
-        // 재고 복원 로직 추가
     }
 
     public int calculateTotalPrice() {
@@ -59,5 +63,17 @@ public class Order extends BaseEntity {
 
     public void updateTotalPrice() {
         this.total_price = calculateTotalPrice();
+    }
+
+    public void checkActorCanModify(Member actor) {
+        if (!this.member.equals(actor)) {
+            throw new ServiceException("403-1", "해당 주문을 수정할 권한이 없습니다.");
+        }
+    }
+
+    public void checkActorCanDelete(Member actor) {
+        if (!this.member.equals(actor)) {
+            throw new ServiceException("403-2", "해당 주문을 삭제할 권한이 없습니다.");
+        }
     }
 }

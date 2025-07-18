@@ -25,14 +25,27 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/favicon.ico").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        // Product 관련 GET 요청은 인증 없이 접근 가능하게 하는 코드 추가 예정
-                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/user", "/api/*/members/signup/admin").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/*/members/login", "/api/*/members/logout").permitAll()
-                        .requestMatchers("/api/*/adm/**").hasRole("ADMIN")
-                        .requestMatchers("/api/*/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/favicon.ico",
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/members/login",
+                                "/members/signup"
+                        ).permitAll() //로그인안하면 3곳만.
+                        .requestMatchers(HttpMethod.POST, "/api/*/members/signup/**", "/api/*/members/login", "/api/*/members/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll() //상품 조회 API 허용
+                        .requestMatchers(HttpMethod.PUT, "/api/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").permitAll()
+
+                        .requestMatchers("/admin/**", "/api/*/admin/**").hasRole("ADMIN") //ADMIN 경로 규칙
+
+
+                        .anyRequest().authenticated() //규칙 authenticated로 변경
                 )
                 .headers(
                         headers -> headers
@@ -90,7 +103,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }

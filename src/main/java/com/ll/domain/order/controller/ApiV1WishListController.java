@@ -25,19 +25,25 @@ public class ApiV1WishListController {
     @GetMapping("/member/{memberId}")
     @Transactional(readOnly = true)
     @Operation(summary = "특정 회원의 wishList 목록 조회")
-    public List<WishListDto> getWishList(@PathVariable("memberId") int memberId) {
+    public RsData<List<WishListDto>> getWishList(@PathVariable("memberId") int memberId) {
         List<WishList> wishLists = wishListService.getMemberWishList(memberId);
 
-        return wishLists
+        List<WishListDto> dtoList = wishLists
                 .stream()
                 .map(WishListDto::new)
                 .toList();
+
+        return new RsData<>(
+                "200-1",
+                "위시리스트 목록을 조회했습니다.",
+                dtoList
+        );
     }
 
     //추가
     record AddWishListRequest(
-            @NotNull(message = "회원 Email은 필수이다.")
-            String memberEmail,
+            @NotNull(message = "회원 ID는 필수이다.")
+            int memberId,
             @NotNull(message = "상품 ID는 필수이다.")
             int productId,
             @Min(value =1, message = "수량은 1 이상이어야 한다.")
@@ -51,7 +57,7 @@ public class ApiV1WishListController {
     public RsData<WishListDto> create(@Valid @RequestBody
                                       AddWishListRequest req) {
         WishList wishList = wishListService.create(
-                req.memberEmail(),
+                req.memberId(),
                 req.productId(),
                 req.quantity()
         );
@@ -64,18 +70,17 @@ public class ApiV1WishListController {
     }
 
     record SetWishListQuantityReqBody(
-            @NotNull(message = "새로운 수량은 필수이다.")
-            @Min(value = 0, message = "수량은 0 이상이어야 한다. 0이면 제거.")
+            int memberId,
+            int productId,
             int newQuantity
     ) {}
 
-    @PutMapping("/{id}/quantity")
+    @PutMapping("/quantity")
     @Transactional
     @Operation(summary = "찜 목록(장바구니) 항목 수량 변경")
-    public RsData<Void> setWishListQuantity(@PathVariable("id") int id, @Valid @RequestBody SetWishListQuantityReqBody req) {
+    public RsData<Void> setWishListQuantity(@RequestBody SetWishListQuantityReqBody req) {
         wishListService.setProductQuantityInWishList(
-                id,
-                req.newQuantity()
+                req.memberId, req.productId, req.newQuantity
         );
         return new RsData<>(
                 "200-1",
@@ -83,22 +88,29 @@ public class ApiV1WishListController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    record SetWishListDeleteReqBody(
+            int memberId,
+            int productId
+    ) {}
+
+    @DeleteMapping
     @Transactional
     @Operation(summary = "위시리스트 상품 제거")
-    public RsData<Void> delete(@PathVariable("id") int id) {
-        wishListService.removeWishListItem(id);
+    public RsData<Void> delete(@RequestBody SetWishListDeleteReqBody req) {
+        wishListService.removeWishListItem(
+                req.memberId, req.productId
+        );
         return new RsData<>(
                 "200-1",
                 "위시리스트가 삭제되었습니다."
         );
     }
 
-    @DeleteMapping("{memberEmail}/clear")
+    @DeleteMapping("/member/{memberId}")
     @Transactional
     @Operation(summary = "회원의 위시리스트 비우기")
-    public RsData<Void> clearMemberWishList(@PathVariable String memberEmail) {
-        wishListService.clearWishList(memberEmail);
+    public RsData<Void> clearMemberWishList(@PathVariable int memberId) {
+        wishListService.clearWishList(memberId);
         return new RsData<>(
                 "200-1",
                 "위시리스트가 모두 삭제되었습니다."

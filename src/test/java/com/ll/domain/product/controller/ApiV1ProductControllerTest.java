@@ -45,23 +45,25 @@ public class ApiV1ProductControllerTest {
     private String dirName;
 
     @Test
-    @DisplayName("상품 등록 - MediaType.MULTIPART_FORM_DATA 방식")
+    @DisplayName("상품 등록 방식")
     void 상품_등록() throws Exception {
 
-        // 대표 이미지
-        MockMultipartFile mainImage = new MockMultipartFile("mainImage", "mainImage.jpg", "image/jpeg", "main-image-data".getBytes(StandardCharsets.UTF_8));
+        String jsonContent = """
+        {
+          "productName": "커피 01",
+          "price": 4500,
+          "description": "커피 01 설명",
+          "stock": 500,
+          "status": "SALE",
+          "category": "COFFEE",
+          "imageUrl": "images/Americano.png"
+        }
+        """;
 
-        // 요청 및 검증
         ResultActions resultActions = mvc.perform(
-                multipart("/api/v1/products/create")
-                        .file(mainImage)
-                        .param("productName", "커피 01")
-                        .param("price", "4500")
-                        .param("description", "커피 01 설명")
-                        .param("stock", "500")
-                        .param("status", "SALE")
-                        .param("category", "COFFEE")
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                post("/api/v1/products/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
         ).andDo(print());
 
         resultActions

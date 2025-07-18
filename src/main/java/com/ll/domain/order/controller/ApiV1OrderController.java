@@ -1,9 +1,10 @@
 package com.ll.domain.order.controller;
 
+import com.ll.domain.member.entity.Member;
 import com.ll.domain.order.dto.OrderDto;
 import com.ll.domain.order.entity.Order;
-import com.ll.domain.order.repository.OrderRepository;
 import com.ll.domain.order.service.OrderService;
+import com.ll.global.rq.Rq;
 import com.ll.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -21,27 +22,35 @@ import java.util.List;
 @RequestMapping("/api/v1/orders")
 public class ApiV1OrderController {
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
+    private final Rq rq;
 
     @GetMapping
     @Transactional(readOnly = true)
     @Operation(summary = "다건 조회")
-    public List<OrderDto> getItems(){
+    public RsData<List<OrderDto>> getItems(){
         List<Order> orders = orderService.findAll();
-
-        return orders
-                .stream()
-                .map(OrderDto::new)
+        List<OrderDto> dtoList = orders
+                .stream().
+                map(OrderDto::new)
                 .toList();
+
+        return new RsData<>(
+                "200-1",
+                "주문 목록을 조회했습니다.",
+                dtoList);
 
     }
 
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
     @Operation(summary = "단건 조회")
-    public OrderDto getItem(@PathVariable int id) {
+    public RsData<OrderDto> getItem(@PathVariable int id) {
         Order order = orderService.findById(id).get();
-        return new OrderDto(order);
+
+        return new RsData<>(
+                "200-1",
+                "주문을 조회했습니다.",
+                new OrderDto(order)
+        );
     }
 
 
@@ -49,7 +58,10 @@ public class ApiV1OrderController {
     @Transactional
     @Operation(summary = "삭제")
     public RsData<Void> delete(@PathVariable int id) {
+        Member actor = rq.getActor();
         Order order = orderService.findById(id).get();
+
+        order.checkActorCanDelete(actor);
 
         orderService.delete(order);
 
@@ -60,9 +72,6 @@ public class ApiV1OrderController {
     }
 
     record OrderCreateReqBody(
-            @NotNull(message = "회원 ID는 필수이다.")
-            int memberId, // 주문하는 회원의 ID
-
             @NotNull(message = "상품 ID 목록은 필수이다.")
             @Size(min = 1, message = "최소 하나의 상품은 포함해야 한다.")
             List<Integer> productIds, // 주문할 상품들의 ID 목록
@@ -79,8 +88,10 @@ public class ApiV1OrderController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<OrderDto> write(@Valid @RequestBody OrderCreateReqBody reqBody) {
+        Member actor = rq.getActor();
+
         Order order = orderService.create(
-                reqBody.memberId(),
+                actor.getId(),
                 reqBody.productIds(),
                 reqBody.quantities(),
                 reqBody.address()
@@ -113,7 +124,11 @@ public class ApiV1OrderController {
             @PathVariable int id,
             @Valid @RequestBody OrderModifyReqBody reqBody
     ) {
+        Member actor = rq.getActor();
         Order order = orderService.findById(id).get();
+
+        order.checkActorCanModify(actor);
+
         orderService.modify(
                 order,
                 reqBody.productIds,
@@ -124,6 +139,23 @@ public class ApiV1OrderController {
         return new RsData<>(
                 "200-1",
                 "%d번 주문이 수정되었습니다.".formatted(order.getId())
+        );
+    }
+
+    @GetMapping("/my")
+    @Transactional(readOnly = true)
+    @Operation(summary = "사용자 주문 목록 조회")
+    public RsData<List<OrderDto>> getMyOrders() {
+        Member actor = rq.getActor();
+
+        List<Order> myOrders = orderService.findByMember(actor);
+
+        return new RsData<>(
+                "200-1",
+                "나의 주문 목록 조회 성공",
+                myOrders.stream()
+                        .map(OrderDto::new)
+                        .toList()
         );
     }
 

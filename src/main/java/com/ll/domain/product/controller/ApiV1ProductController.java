@@ -22,15 +22,13 @@ public class ApiV1ProductController {
     private final ProductService productService;
 
     @Transactional
-    @PostMapping(value = "/create", consumes = "multipart/form-data")
+    @PostMapping(value = "/create")
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.\n" +
-            "'contentType: multipart/form-data' 형식으로 요청해야 합니다.")
+            "'contentType: MediaType.APPLICATION_JSON' 형식으로 요청해야 합니다.")
     public RsData<Product> createProduct(
-            @ModelAttribute CreateProductRequestDto productDto,
-            @RequestParam("mainImage") MultipartFile mainImage
-
+            @RequestBody CreateProductRequestDto productDto
     ) {
-        Product product = productService.createProduct(productDto, mainImage);
+        Product product = productService.createProduct(productDto);
         return new RsData<>("200-1", "상품이 등록되었습니다.", product);
     }
 
@@ -75,6 +73,36 @@ public class ApiV1ProductController {
     public RsData<Product> updateProduct(@RequestBody UpdateProductRequestDto updateProductRequestDto) {
         Product product = productService.updateProduct(updateProductRequestDto);
         return new RsData<>("200-1", "%d번 상품을 수정했습니다.".formatted(updateProductRequestDto.getId()), product);
+    }
+
+    @Transactional
+    @PatchMapping("/{id}/stock/increase")
+    @Operation(summary = "재고 증가")
+    public RsData<Void> increaseStock(
+            @PathVariable int id,
+            @RequestParam int quantity
+    ) {
+        productService.increaseStock(id, quantity);
+
+        return new RsData<>(
+                "200-1",
+                "상품 ID %d의 재고가 %d만큼 증가했습니다.".formatted(id, quantity)
+        );
+    }
+
+    @Transactional
+    @PatchMapping("/{id}/stock/decrease")
+    @Operation(summary = "재고 감소")
+    public RsData<Void> decreaseStock(
+            @PathVariable int id,
+            @RequestParam int quantity
+    ) {
+        productService.decreaseStock(id, quantity);
+
+        return new RsData<>(
+                "200-2",
+                "상품 ID %d의 재고가 %d만큼 감소했습니다.".formatted(id, quantity)
+        );
     }
 
 }
