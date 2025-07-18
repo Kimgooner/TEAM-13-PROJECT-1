@@ -41,3 +41,7 @@ custom:
   accessToken:
     expirationSeconds: "#{60*20}"
 
+app:
+  admin:
+    registration-code: "1234"
+
