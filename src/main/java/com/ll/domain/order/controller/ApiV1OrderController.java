@@ -58,7 +58,10 @@ public class ApiV1OrderController {
     @Transactional
     @Operation(summary = "삭제")
     public RsData<Void> delete(@PathVariable int id) {
+        Member actor = rq.getActor();
         Order order = orderService.findById(id).get();
+
+        order.checkActorCanDelete(actor);
 
         orderService.delete(order);
 
@@ -69,9 +72,6 @@ public class ApiV1OrderController {
     }
 
     record OrderCreateReqBody(
-            @NotNull(message = "회원 ID는 필수이다.")
-            int memberId, // 주문하는 회원의 ID
-
             @NotNull(message = "상품 ID 목록은 필수이다.")
             @Size(min = 1, message = "최소 하나의 상품은 포함해야 한다.")
             List<Integer> productIds, // 주문할 상품들의 ID 목록
@@ -88,8 +88,10 @@ public class ApiV1OrderController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<OrderDto> write(@Valid @RequestBody OrderCreateReqBody reqBody) {
+        Member actor = rq.getActor();
+
         Order order = orderService.create(
-                reqBody.memberId(),
+                actor.getId(),
                 reqBody.productIds(),
                 reqBody.quantities(),
                 reqBody.address()
@@ -122,7 +124,11 @@ public class ApiV1OrderController {
             @PathVariable int id,
             @Valid @RequestBody OrderModifyReqBody reqBody
     ) {
+        Member actor = rq.getActor();
         Order order = orderService.findById(id).get();
+
+        order.checkActorCanModify(actor);
+
         orderService.modify(
                 order,
                 reqBody.productIds,
@@ -141,13 +147,6 @@ public class ApiV1OrderController {
     @Operation(summary = "사용자 주문 목록 조회")
     public RsData<List<OrderDto>> getMyOrders() {
         Member actor = rq.getActor();
-
-        if (actor == null) {
-            return new RsData<>(
-                    "401-1",
-                    "로그인이 필요합니다."
-            );
-        }
 
         List<Order> myOrders = orderService.findByMember(actor);
 
