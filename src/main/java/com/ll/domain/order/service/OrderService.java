@@ -9,13 +9,17 @@ import com.ll.domain.product.entity.Product;
 import com.ll.domain.product.repository.ProductRepository;
 import com.ll.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j //로그확인용
 public class OrderService {
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
@@ -104,5 +108,13 @@ public class OrderService {
 
     public List<Order> findByMember(Member member) {
         return orderRepository.findByMemberIdWithItems(member.getId());
+    }
+
+
+
+    @Scheduled(cron = "0 0 14 * * *", zone = "Asia/Seoul")
+    @Transactional
+    public void updateOrderStatusToDelivered() {
+        orderRepository.bulkUpdateOrderStatusToDelivered();
     }
 }
