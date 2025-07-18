@@ -2,8 +2,10 @@ package com.ll.domain.order.repository;
 
 import com.ll.domain.order.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +25,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "WHERE o.member.id = :memberId AND o.order_status = 'ORDERED' " + // 필요하면 조건 추가
             "ORDER BY o.id DESC")
     List<Order> findByMemberIdWithItems(@Param("memberId") int memberId);
+
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Order o SET o.order_status = 'DELIVERED' WHERE o.order_status = 'ORDERED'")
+    void bulkUpdateOrderStatusToDelivered();
 }
