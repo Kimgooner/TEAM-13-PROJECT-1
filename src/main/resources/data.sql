@@ -1,6 +1,3 @@
-ALTER TABLE product
-ALTER COLUMN CREATE_DATE SET DEFAULT CURRENT_TIMESTAMP;
-
 -- 커피
 INSERT INTO product (product_name, price, description, product_image, stock, category, status)
 VALUES
