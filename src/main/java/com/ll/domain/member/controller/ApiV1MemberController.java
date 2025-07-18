@@ -40,6 +40,8 @@ public class ApiV1MemberController {
     ) {
     }
 
+
+
     @PostMapping("/signup/user") // 사용자 회원가입
     @Operation(summary = "사용자 회원 가입")
     public RsData<MemberDto> signUpUser(@Valid @RequestBody SignUpRequest signUpRequest){
@@ -57,14 +59,23 @@ public class ApiV1MemberController {
         );
     }
 
+    record AdminSignUpRequest(
+            @Email @NotBlank String email,
+            @NotBlank String password,
+            @NotBlank String name,
+            @NotBlank String address,
+            @NotBlank String adminCode // 관리자 등록 코드 필드 추가
+    ) {}
+
     @PostMapping("/signup/admin") // 관리자 회원 가입
     @Operation(summary = "관리자 회원 가입")
-    public RsData<MemberDto> signUpAdmin(@Valid @RequestBody SignUpRequest signUpRequest){
+    public RsData<MemberDto> signUpAdmin(@Valid @RequestBody AdminSignUpRequest signUpRequest){
         Member member = memberService.addAdminMember(
                 signUpRequest.email(),
                 signUpRequest.password(),
                 signUpRequest.name(),
-                signUpRequest.address()
+                signUpRequest.address(),
+                signUpRequest.adminCode()
         );
 
         return new RsData<>(
